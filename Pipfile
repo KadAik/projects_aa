@@ -5,6 +5,9 @@ name = "pypi"
 
 [packages]
 django = "*"
+django-phonenumber-field = {extras = ["phonenumbers"], version = "*"}
+django-rest-framework = "*"
+django-debug-toolbar = "*"
 
 [dev-packages]
 

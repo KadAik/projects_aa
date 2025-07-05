@@ -37,9 +37,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Psycho app
+    'psycho.apps.PsychoConfig',
+    # Phone number field
+    'phonenumber_field',
+    # Django REST framework
+    'rest_framework',
+    'debug_toolbar',  # For debugging purposes
 ]
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -120,3 +128,22 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Custom USER model
+AUTH_USER_MODEL = 'psycho.User'
+
+
+# For DRF rendering classes
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+        # 'rest_framework_xml.renderers.XMLRenderer',  # requires djangorestframework-xml
+    ]
+}
+
+
+# The Debug Toolbar is shown only if the IP address is listed in Django’s INTERNAL_IPS setting
+INTERNAL_IPS = [
+    '127.0.0.1',
+]
