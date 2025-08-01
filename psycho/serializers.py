@@ -19,6 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'email', 'first_name', 'last_name']
 
+
 class AdminProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for the AdminProfile model.
@@ -149,6 +150,7 @@ class AdminProfileSerializer(serializers.ModelSerializer):
             rep['user'] = {'username': rep['user']}
         rep['user']['password'] = rep.pop('password', None)  # Move password to user dict if exists
         return rep
+
 
 class ApplicantProfileSerializer(serializers.ModelSerializer):
     """
