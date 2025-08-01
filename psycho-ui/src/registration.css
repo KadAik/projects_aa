@@ -1,0 +1,210 @@
+/* ========= Container Layout ========= */
+#application-registration-form {
+    width: 100%;
+    padding: 1em;
+    background-color: #fff;
+}
+
+.registration-section {
+    max-width: 800px;
+    margin: auto;
+    padding: 2em;
+    background-color: #f9f9f9;
+    border-radius: 1em;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    border: 1px solid #ddd;
+  }
+
+hr {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    border: none;
+    border-top: 1px solid #ccc;
+}
+
+/* ========= Title / Heading ========= */
+.title {
+    margin: 1em auto;
+    text-align: center;
+}
+
+#application-registration-form h3 {
+    margin-bottom: 0.5em;
+}
+
+.notice {
+    margin-bottom: 0.5em;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* ========= Form Group Layout ========= */
+.form-group {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+/* For horizontal layout, use .form-group.row */
+.form-group.row {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 1.5rem;
+    flex: 1;
+    max-width: 500px;
+    
+}
+
+/* ========= Label Styling ========= */
+.form-group label {
+    flex: 0 0 200px; /* fixed label width */
+    text-align: right;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #333;
+    margin: 0;
+}
+
+.form-group label strong span {
+    color: #d93025; /* red asterisk */
+    font-weight: normal;
+}
+
+/* ========= Input / Select / Textarea ========= */
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 0.6rem 0.8rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #fff;
+    outline: none;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+    max-width: 400px;
+    min-height: 2em;
+}
+
+/* Focus effect */
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
+/* ========= Calendar Icon Wrapper ========= */
+
+/* ========= Utility Spacing ========= */
+div + div {
+    margin-top: 1.5em;
+}
+
+
+#nextprev {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+#nextprev button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    background-color: #256e47;
+    /* deep green */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+#nextprev button:hover {
+    background-color: #2e8b57;
+    /* lighter green */
+    transform: translateY(-2px);
+}
+
+#nextprev button:active {
+    transform: translateY(0);
+    background-color: #1e5c30;
+}
+
+#nextprev button:disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+    transform: none;
+    /* prevent hover/active movement */
+    box-shadow: none;
+    /* if you add shadows later */
+    opacity: 0.7;
+}
+
+
+/* ===== University Degree Section ===== */
+.degree-details {
+    padding: 2em;
+    background-color: #fefefe;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    margin-top: 2em;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.04);
+}
+
+.degree-details h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+/* ===== Recap Section ===== */
+
+.recap-section {
+    background-color: #f9f9f9;
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.recap-section h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #4caf50;
+    padding-bottom: 0.5rem;
+}
+
+.recap-section h4 {
+    font-size: 1.1rem;
+    margin-top: 1.5rem;
+    color: #555;
+}
+
+.recap-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.recap-section li {
+    margin: 0.5rem 0;
+    padding: 0.4rem 0.8rem;
+    background-color: #fff;
+    border-left: 4px solid #4caf50;
+    border-radius: 6px;
+}
+
+.recap-section li strong {
+    color: #222;
+    margin-right: 0.5rem;
+}
+
