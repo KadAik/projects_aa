@@ -1,4 +1,4 @@
-export default function registrationFormDataReducer(formData, action) {
+export default function applicationFormDataReducer(formData, action) {
     switch (action.type) {
         case "SET_FIELD":
             return {
@@ -16,7 +16,7 @@ export default function registrationFormDataReducer(formData, action) {
             };
 
         case "RESET_FORM":
-            return  null;//initialFormData; // you'll define this outside
+            return null; //initialFormData; // you'll define this outside
 
         case "LOAD_SAVED_DATA":
             return {

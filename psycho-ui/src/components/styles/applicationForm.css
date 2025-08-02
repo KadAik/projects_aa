@@ -1,11 +1,11 @@
 /* ========= Container Layout ========= */
-#application-registration-form {
+#application-form {
     width: 100%;
     padding: 1em;
     background-color: #fff;
 }
 
-.registration-section {
+.application-section {
     max-width: 800px;
     margin: auto;
     padding: 2em;
@@ -29,7 +29,7 @@ hr {
     text-align: center;
 }
 
-#application-registration-form h3 {
+#application-form h3 {
     margin-bottom: 0.5em;
 }
 
@@ -206,5 +206,38 @@ div + div {
 .recap-section li strong {
     color: #222;
     margin-right: 0.5rem;
+}
+
+.input-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    max-width: 400px;
+}
+
+
+.error {
+    border: 2px solid #e63946 !important; /* Ensures override if needed */
+    background-color: #fff5f5;
+}
+
+/* Error focus state (prevents blue focus ring clashing with red error) */
+.error:focus {
+    border-color: #e63946 !important;
+    box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.15) !important;
+}
+
+.error-message {
+    color: #e63946;
+    font-size: 0.875rem;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    font-weight: 400;
+    margin-top: 0.25rem;
+    line-height: 1.4;
+}
+
+.error ~ .error-message::before {
+    content: "⚠ ";
+    margin-right: 0.3rem;
 }
 
