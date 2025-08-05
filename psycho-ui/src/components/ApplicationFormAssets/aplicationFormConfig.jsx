@@ -25,7 +25,6 @@ export const initialApplicationFormData = {
         gender: "",
         email: "",
         phone: "",
-        degree: "",
     },
 
     highSchool: {
@@ -39,4 +38,5 @@ export const initialApplicationFormData = {
         fieldOfStudy: "",
         average: "",
     },
+    degree: "",
 };

@@ -10,9 +10,7 @@ const degreeLabels = {
 export default function AppplicationRecapPage() {
     const { getValues } = useFormContext();
 
-    console.log(getValues());
-
-    const { personalHistory, highSchool, university } = getValues();
+    const { degree, personalHistory, highSchool, university } = getValues();
 
     return (
         <>
@@ -49,17 +47,12 @@ export default function AppplicationRecapPage() {
                 <ul>
                     <li>
                         <strong>Niveau académique:</strong>
-                        {degreeLabels[personalHistory.degree]?.slice(2)}
+                        {degreeLabels[degree]?.slice(2)}
                     </li>
 
-                    {["bachelor", "master", "phd"].includes(
-                        personalHistory.degree
-                    ) && (
+                    {["bachelor", "master", "phd"].includes(degree) && (
                         <>
-                            <h4>
-                                Informations sur{" "}
-                                {degreeLabels[personalHistory.degree]}
-                            </h4>
+                            <h4>Informations sur {degreeLabels[degree]}</h4>
                             <li>
                                 <strong>Université:</strong> {university.name}
                             </li>

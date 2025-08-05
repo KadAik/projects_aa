@@ -1,6 +1,7 @@
 import * as yup from "yup";
 
 export const schema = yup.object().shape({
+    degree: yup.string().required("Choisissez votre niveau académique"),
     personalHistory: yup.object().shape({
         firstName: yup
             .string()
@@ -51,14 +52,23 @@ export const schema = yup.object().shape({
             .min(0, "La moyenne ne peut pas être inférieure à 0")
             .max(20, "La moyenne ne peut pas dépasser 20"),
     }),
-    university: yup.object().shape({
-        name: yup.string().required("Vous devez renseigner l'université"),
-        fieldOfStudy: yup.string().required("Renseignez votre spécialité"),
-        average: yup
-            .number()
-            .typeError("La moyenne doit être un nombre")
-            .required("La moyenne est obligatoire")
-            .min(0, "La moyenne ne peut pas être inférieure à 0")
-            .max(20, "La moyenne ne peut pas dépasser 20"),
+    university: yup.object().when("degree", {
+        is: (degree) => ["bachelor", "master", "phd"].includes(degree),
+        then: (schema) =>
+            schema.shape({
+                name: yup
+                    .string()
+                    .required("Vous devez renseigner l'université"),
+                fieldOfStudy: yup
+                    .string()
+                    .required("Renseignez votre spécialité"),
+                average: yup
+                    .number()
+                    .typeError("La moyenne doit être un nombre")
+                    .required("La moyenne est obligatoire")
+                    .min(0, "La moyenne ne peut pas être inférieure à 0")
+                    .max(20, "La moyenne ne peut pas dépasser 20"),
+            }),
+        otherwise: (schema) => schema.strip(),
     }),
 });
