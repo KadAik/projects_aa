@@ -1,11 +1,11 @@
-from django.db import models
+import random
+import uuid
+
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import Group, Permission
-
-from django.db.models.functions import Lower
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db import models
 from django.utils.translation import gettext_lazy as _
-
-import uuid
 from phonenumber_field.modelfields import PhoneNumberField
 
 
@@ -141,8 +141,8 @@ class ApplicantProfile(models.Model, NormalizeFieldsMixin):
     """
     applicant_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, help_text="Unique identifier for the applicant")
     user = models.OneToOneField(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='applicant_profile')
-    
-    # Civil status
+
+    # Personal history
     first_name = models.CharField("applicant first name", max_length=100, help_text="ApplicantProfile's first name")
     last_name = models.CharField("applicant last name", max_length=100, help_text="ApplicantProfile's last name")
     date_of_birth = models.DateField()
@@ -155,6 +155,30 @@ class ApplicantProfile(models.Model, NormalizeFieldsMixin):
     # Registration
     date_registered = models.DateTimeField(auto_now_add=True, help_text="Date at which the applicant creates its profile")
     date_updated = models.DateTimeField(auto_now=True, help_text="Date at which the applicant updates its profile")
+
+    # Educational background
+    class Degree(models.TextChoices):
+        HIGHSCHOOL = 'HIGHSCHOOL', _('High School')
+        BACHELOR = 'BACHELOR', _('Bachelor')
+        MASTER = 'MASTER', _('Master')
+
+    class BaccalaureateSeries(models.TextChoices):
+        BAC_D = 'D', _('BAC D')
+        BAC_C = 'C', _('BAC C')
+        BAC_E = 'E', _('BAC E')
+        BAC_F = 'F', _('BAC F')
+
+    degree = models.CharField("The applicant highest study degree", choices=Degree.choices)
+    baccalaureate_series = models.CharField("The type of baccalaureate", max_length=2,
+                                            choices=BaccalaureateSeries.choices)
+    baccalaureate_average = models.FloatField("Average at baccalaureate exam", blank=True, null=True,
+                                              validators=[MinValueValidator(0.0), MaxValueValidator(20.0)])
+
+    university = models.ForeignKey('University', on_delete=models.SET_NULL, blank=True, null=True,
+                                   related_name='Graduate')
+    university_field_of_study = models.CharField("The degree specialization", max_length=99, null=True, blank=True)
+    university_average = models.FloatField("Average for the university degree", blank=True, null=True,
+                                           validators=[MinValueValidator(0.0), MaxValueValidator(20.0)])
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
@@ -298,7 +322,9 @@ class Application(models.Model):
     
     # Application details
     date_submitted = models.DateTimeField(auto_now_add=True)
-    date_updated = models.DateTimeField(auto_now=True)  
+    date_updated = models.DateTimeField(auto_now=True)
+    # The following field is auto computed from the lastname, the date of birth and random three digits.
+    tracking_id = models.CharField("A human-readable reference to track the application", max_length=14)
     
     class ApplicationStatus(models.TextChoices):
         PENDING = 'Pending', _('Pending')
@@ -357,8 +383,6 @@ class Application(models.Model):
         For every new application creation, kwargs must contain a key named applicant_profile_data which is a dict.
         """
         # First get the mandatory information from the kwargs
-        print("Saving application with kwargs:", kwargs)
-        print("Application ID:", self.application_id)
         if self._state.adding: # It means we are creating a new application
             applicant_profile_data = kwargs.pop('applicant_profile_data', None)
             if not applicant_profile_data:
@@ -367,9 +391,13 @@ class Application(models.Model):
                 raise ValueError("Applicant profile data must be a dictionary.")
             profile = self.create_applicant_profile(applicant_profile_data)
             self.applicant = profile
-            
-        super().save(*args, **kwargs)    
-    
+
+            # We compute the tracking_id here
+            self.tracking_id = f"{profile.last_name[:2]}-{profile.date_of_birth.strftime("%d%m%y")}-{random.randint(100, 999)}"
+
+        super().save(*args, **kwargs)
+
+
 class Review(models.Model):
     """
     Model representing a review of an application.
@@ -387,3 +415,10 @@ class Review(models.Model):
     
     def __str__(self):
         return f'Review on {self.application.applicant.first_name} application by {self.author.first_name}'
+
+
+class University(models.Model):
+    """
+    Model representing a university.
+    """
+    name = models.CharField("The university name", max_length=99)
