@@ -1,10 +1,10 @@
 import { useFormContext } from "react-hook-form";
 
 const degreeLabels = {
-    highSchool: "le Baccalauréat",
-    bachelor: "la Licence",
-    master: "le Master",
-    phd: "le Doctorat",
+    HIGHSCHOOL: "le Baccalauréat",
+    BACHELOR: "la Licence",
+    MASTER: "le Master",
+    PHD: "le Doctorat",
 };
 
 export default function AppplicationRecapPage() {
@@ -25,11 +25,11 @@ export default function AppplicationRecapPage() {
                     </li>
                     <li>
                         <strong>Date de naissance:</strong>{" "}
-                        {personalHistory.birthDate}
+                        {personalHistory.dateOfBirth}
                     </li>
                     <li>
                         <strong>Sexe:</strong>{" "}
-                        {personalHistory.gender === "male"
+                        {personalHistory.gender === "M"
                             ? "Masculin"
                             : "Féminin"}
                     </li>
@@ -50,7 +50,7 @@ export default function AppplicationRecapPage() {
                         {degreeLabels[degree]?.slice(2)}
                     </li>
 
-                    {["bachelor", "master", "phd"].includes(degree) && (
+                    {["BACHELOR", "MASTER", "PHD"].includes(degree) && (
                         <>
                             <h4>Informations sur {degreeLabels[degree]}</h4>
                             <li>
@@ -78,7 +78,8 @@ export default function AppplicationRecapPage() {
                             {highSchool.baccalaureateSession}
                         </li>
                         <li>
-                            <strong>Moyenne:</strong> {highSchool.average}
+                            <strong>Moyenne:</strong>{" "}
+                            {highSchool.baccalaureateAverage}
                         </li>
                     </>
                 </ul>

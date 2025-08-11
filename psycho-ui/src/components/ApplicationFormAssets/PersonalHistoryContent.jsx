@@ -62,7 +62,7 @@ export default function PersonalHistoryContent() {
             </div>
 
             <div className="form-group row">
-                <label htmlFor="birthDate">
+                <label htmlFor="date-of-birth">
                     Date de naissance{" "}
                     <strong>
                         <span aria-label="required">
@@ -73,12 +73,12 @@ export default function PersonalHistoryContent() {
                 <div className="input-wrapper">
                     <input
                         type="date"
-                        id="birthDate"
+                        id="date-of-birth"
                         className={hasError("birthDate") ? "error" : ""}
-                        {...register("personalHistory.birthDate")}
+                        {...register("personalHistory.dateOfBirth")}
                     />
                     <p className="error-message">
-                        {getError("birthDate")?.message}
+                        {getError("dateOfBirth")?.message}
                     </p>
                 </div>
             </div>
@@ -101,8 +101,8 @@ export default function PersonalHistoryContent() {
                         <option value="" disabled hidden>
                             Choose
                         </option>
-                        <option value="male">M</option>
-                        <option value="female">F</option>
+                        <option value="M">M</option>
+                        <option value="F">F</option>
                     </select>
                     <p className="error-message">
                         {getError("gender")?.message}

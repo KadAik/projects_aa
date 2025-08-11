@@ -8,6 +8,8 @@ django = "*"
 django-phonenumber-field = {extras = ["phonenumbers"], version = "*"}
 django-rest-framework = "*"
 django-debug-toolbar = "*"
+django-cors-headers = "*"
+black = "*"
 
 [dev-packages]
 

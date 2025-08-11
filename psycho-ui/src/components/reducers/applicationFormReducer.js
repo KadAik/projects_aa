@@ -23,5 +23,13 @@ export default function applicationFormReducer(state, action) {
                     name: sectionsNames[state.section.index - 1],
                 },
             };
+        case "SET_SECTION":
+            return {
+                ...state,
+                section: {
+                    index: action.index,
+                    name: sectionsNames[action.index],
+                },
+            };
     }
 }

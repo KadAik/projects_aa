@@ -13,9 +13,9 @@ export default function UniversityDegreeDetails({ degree }) {
         <div className="degree-details">
             <h4>
                 Informations sur{" "}
-                {degree === "bachelor"
+                {degree === "BACHELOR"
                     ? "la Licence"
-                    : degree === "master"
+                    : degree === "MASTER"
                     ? "le Master"
                     : "le Doctorat"}
             </h4>

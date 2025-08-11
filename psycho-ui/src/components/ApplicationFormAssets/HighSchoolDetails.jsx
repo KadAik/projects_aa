@@ -25,20 +25,20 @@ export default function HighSchoolDetails() {
                     <select
                         id="baccalaureate-serie"
                         className={
-                            getError("baccalaureateSerie") ? "error" : ""
+                            getError("baccalaureateSeries") ? "error" : ""
                         }
-                        {...register("highSchool.baccalaureateSerie")}
+                        {...register("highSchool.baccalaureateSeries")}
                     >
                         <option value="" disabled hidden>
                             Choose
                         </option>
-                        <option value="Bac_C">BAC C</option>
-                        <option value="Bac_D">BAC D</option>
-                        <option value="Bac_E">BAC E</option>
-                        <option value="Bac_F">BAC F</option>
+                        <option value="C">BAC C</option>
+                        <option value="D">BAC D</option>
+                        <option value="E">BAC E</option>
+                        <option value="F">BAC F</option>
                     </select>
                     <p className="error-message">
-                        {getError("baccalaureateSerie")}
+                        {getError("baccalaureateSeries")}
                     </p>
                 </div>
             </div>
@@ -55,7 +55,7 @@ export default function HighSchoolDetails() {
                 </label>
                 <div className="input-wrapper">
                     <input
-                        type="month"
+                        type="date"
                         id="baccalaureate-session"
                         className={
                             getError("baccalaureateSession") ? "error" : ""
@@ -82,10 +82,14 @@ export default function HighSchoolDetails() {
                     <input
                         type="phone"
                         id="baccalaureate-average"
-                        className={getError("average") ? "error" : ""}
-                        {...register("highSchool.average")}
+                        className={
+                            getError("baccalaureateAverage") ? "error" : ""
+                        }
+                        {...register("highSchool.baccalaureateAverage")}
                     />
-                    <p className="error-message">{getError("average")}</p>
+                    <p className="error-message">
+                        {getError("baccalaureateAverage")}
+                    </p>
                 </div>
             </div>
         </div>

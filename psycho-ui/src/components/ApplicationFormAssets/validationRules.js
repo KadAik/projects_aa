@@ -11,7 +11,7 @@ export const schema = yup.object().shape({
             .string()
             .required("Le nom est obligatoire")
             .min(2, "Le nom doit contenir au moins 2 caractères"),
-        birthDate: yup
+        dateOfBirth: yup
             .date()
             .transform((value, originalValue) =>
                 originalValue === "" ? null : value
@@ -21,7 +21,7 @@ export const schema = yup.object().shape({
         gender: yup
             .string()
             .required("Le genre est obligatoire")
-            .oneOf(["male", "female"], "Genre invalide"),
+            .oneOf(["M", "F"], "Genre invalide"),
         email: yup
             .string()
             .email("L'adresse mail doit être valide")
@@ -35,7 +35,7 @@ export const schema = yup.object().shape({
             ),
     }),
     highSchool: yup.object().shape({
-        baccalaureateSerie: yup
+        baccalaureateSeries: yup
             .string()
             .required("La série du bac est obligatoire"),
         baccalaureateSession: yup
@@ -45,7 +45,7 @@ export const schema = yup.object().shape({
             )
             .nullable()
             .required("La session est obligatoire"),
-        average: yup
+        baccalaureateAverage: yup
             .number()
             .typeError("La moyenne doit être un nombre")
             .required("La moyenne du bac est obligatoire")
@@ -53,15 +53,15 @@ export const schema = yup.object().shape({
             .max(20, "La moyenne ne peut pas dépasser 20"),
     }),
     university: yup.object().when("degree", {
-        is: (degree) => ["bachelor", "master", "phd"].includes(degree),
+        is: (degree) => ["BACHELOR", "MASTER", "PHD"].includes(degree),
         then: (schema) =>
             schema.shape({
                 name: yup
                     .string()
-                    .required("Vous devez renseigner l'université"),
-                fieldOfStudy: yup
-                    .string()
-                    .required("Renseignez votre spécialité"),
+                    .required(
+                        "Vous devez renseigner le nom de votre université"
+                    ),
+                fieldOfStudy: yup.string().required("Renseignez votre filière"),
                 average: yup
                     .number()
                     .typeError("La moyenne doit être un nombre")

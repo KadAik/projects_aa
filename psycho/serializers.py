@@ -1,20 +1,19 @@
+from django.db import transaction
 from rest_framework import serializers
-from .models import(
+
+from .models import (
     User,
     AdminProfile,
     ApplicantProfile,
-    HRManagerProfile,
-    Application,
-    Review,
+    Application, University,
 )
-
-from django.db import transaction
 
 
 class UserSerializer(serializers.ModelSerializer):
     """
     Serializer for the User model.
     """
+
     class Meta:
         model = User
         fields = ['username', 'email', 'first_name', 'last_name']
@@ -25,20 +24,20 @@ class AdminProfileSerializer(serializers.ModelSerializer):
     Serializer for the AdminProfile model.
     """
     url = serializers.HyperlinkedIdentityField(
-        view_name = 'psycho:adminprofile-detail',
-        read_only = True,
+        view_name='psycho:adminprofile-detail',
+        read_only=True,
     )
-    
+
     user_id = serializers.PrimaryKeyRelatedField(source='user', read_only=True)
-    
+
     username = serializers.CharField(
-        source='user', # Not user.username to prevent NoneType error ; then to_representation will handle it
+        source='user',  # Not user.username to prevent NoneType error ; then to_representation will handle it
         error_messages={
             'required': 'Username is required.',
             'blank': 'Username cannot be blank.',
         }
     )
-    
+
     password = serializers.CharField(
         write_only=True,
         style={'input_type': 'password'},
@@ -48,7 +47,7 @@ class AdminProfileSerializer(serializers.ModelSerializer):
             'blank': 'Password cannot be blank.',
         }
     )
-    
+
     class Meta:
         model = AdminProfile
         fields = [
@@ -64,7 +63,7 @@ class AdminProfileSerializer(serializers.ModelSerializer):
             "phone",
             "date_created",
             "date_updated",
-            
+
         ]
 
         read_only_fields = [
@@ -80,10 +79,10 @@ class AdminProfileSerializer(serializers.ModelSerializer):
         """
         username = validated_data.pop('username', None)
         password = validated_data.pop('password', None)
-        
+
         with transaction.atomic():
             admin_profile = AdminProfile.objects.create(**validated_data)
-            
+
             try:
                 admin_profile.create_superuser_account(username, password)
             except ValueError as ve:
@@ -92,9 +91,9 @@ class AdminProfileSerializer(serializers.ModelSerializer):
                 if "Password" in str(ve):
                     raise serializers.ValidationError({"password": str(ve)})
                 raise ve
-            
+
         return admin_profile
-    
+
     def update(self, instance, validated_data):
         """
         Update the user while updating an admin profile.
@@ -103,11 +102,12 @@ class AdminProfileSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             user = instance.user
             user_data = validated_data.pop('user', {})
-            
+
             username = user_data.get('username', None)
             email = user_data.get('email', None)
 
-            if username and username != user.username and User.objects.filter(username=username).exclude(pk=user.pk).exists():
+            if username and username != user.username and User.objects.filter(username=username).exclude(
+                    pk=user.pk).exists():
                 raise serializers.ValidationError({"username": "This username is already taken."})
 
             if email and email != user.email and User.objects.filter(email=email).exclude(pk=user.pk).exists():
@@ -132,14 +132,14 @@ class AdminProfileSerializer(serializers.ModelSerializer):
         Get the username from the user object if exists.
         """
         rep = super().to_representation(instance)
-    
+
         username = instance.user.username if instance.user else None
-        
+
         if username:
             rep['username'] = username
-        
+
         return rep
- 
+
     def to_internal_value(self, data):
         """
         Tranform the user key in the validated_data into a dictionnary containing the username.
@@ -152,37 +152,60 @@ class AdminProfileSerializer(serializers.ModelSerializer):
         return rep
 
 
+class UniversitySerializer(serializers.ModelSerializer):
+    """
+    Serializer class for the University model.
+    """
+
+    class Meta:
+        model = University
+        fields = ["name"]
+
+    def to_internal_value(self, data):
+        print("Calling to university repr with : ", data)
+        intern = super().to_internal_value(data)
+        print("University repr passed")
+        return intern
+
+    def create(self, validated_data):
+        """
+        If the university already exists, return it.
+        """
+        university_name = validated_data.get('name', None)
+        if university_name:
+            university, _ = University.objects.get_or_create(**validated_data)
+        else:
+            raise serializers.ValidationError('A university name is required')
+        return university
+
+
 class ApplicantProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for the Applicant model.
     """
     url = serializers.HyperlinkedIdentityField(
-        view_name = 'psycho:applicant-detail',
-        read_only = True,
+        view_name='psycho:applicant-detail',
+        read_only=True,
     )
-    
+
     user_id = serializers.PrimaryKeyRelatedField(source='user', read_only=True)
-    
+
     user = serializers.StringRelatedField(read_only=True)
-    
+
     create_user_account = serializers.BooleanField(
         default=False,
         write_only=True,
         help_text="Create a user account for the applicant.",
     )
-    
+
     # Beware, username is set here on user not on user.username.
     # This is to prevent a NoneType object doesn't have attribute 'username' error
-    # when initially, an applicant does not have a user account. The create, update, to_representation methods should handle this case accordingly.
-    username = serializers.CharField(source='user', required=False, allow_blank=True)
-    
-    password = serializers.CharField(
-        write_only=True,
-        style={'input_type': 'password'},
-        required=False,
-        allow_blank=True,
-    )
-    
+    # When initially, an applicant does not have a user account. create, update,
+    # to_representation methods should handle this case accordingly.
+    # Updated, providing a default value sorts the traversal on empty object issue.
+    username = serializers.CharField(source='user.username', default=None, read_only=True)
+    university = UniversitySerializer(read_only=True)
+
     class Meta:
         model = ApplicantProfile
         fields = [
@@ -196,34 +219,61 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
             "gender",
             "email",
             "phone",
+            "degree",
+            "baccalaureate_series",
+            "baccalaureate_average",
+            "baccalaureate_session",
+            "university",
+            "university_field_of_study",
+            "university_average",
             "date_registered",
             "date_updated",
             "create_user_account",
-            "password",
             "username",
         ]
-        
+
         read_only_fields = [
             "applicant_id",
             "user",
             "date_registered",
             "date_updated",
-            "password",
-            "username",
         ]
-    
-    def to_representation(self, instance):
+
+    # def to_representation(self, instance):
+    #     """
+    #     Customize the representation of the serializer.
+    #     """
+    #     # Get the initial representation
+    #     rep = super().to_representation(instance)
+    #
+    #     rep["username"] = instance.user.username if instance.user else None
+    #
+    #     return rep
+
+    def to_internal_value(self, data):
         """
-        Customize the representation of the serializer.
+        Customize the internal representation by handling unexpected fields.
         """
-        # Get the initial representation
-        rep = super().to_representation(instance)
-        
-        rep["username"] = instance.user.username if instance.user else None
-            
-        return rep
-            
-    def create_usr_account(self, applicant_profile, username, password):
+        university_data = data.pop("university", None)
+        university_average = data.get('university_average', None)
+        university_field_of_study = data.get('university_field_of_study', None)
+        if university_data:
+            university_average = university_data.pop('university_average', None)
+            university_field_of_study = university_data.pop('university_field_of_study', None)
+            data['university'] = university_data
+            # Beware, as create is overwritten, university is not readonly anymore and the deserialization of university
+            # field is handle over to UniversitySerializer to_internal_value. So enforce with read_only=True
+        intern = super().to_internal_value(data)
+        if university_average:
+            intern['university_average'] = university_average
+
+        if university_field_of_study:
+            intern['university_field_of_study'] = university_field_of_study
+
+        return intern
+
+    @staticmethod
+    def create_usr_account(applicant_profile, username, password):
         """
         Create a user account for the applicant.
         """
@@ -236,28 +286,38 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
             if "Password" in error_message:
                 raise serializers.ValidationError({"password": error_message})
             raise ve
-        
+
         return user
-    
+
     def create(self, validated_data):
         """
         Create a new applicant profile, and optionally create a user account if needed.
+        Handle a university creation
         """
         create_user_account = validated_data.pop('create_user_account')
         username = validated_data.pop('username', None)
         password = validated_data.pop('password', None)
-        
-        del validated_data['user']  # Remove user field from validated_data
-        
+
+        university = validated_data.pop('university', None)
+
         with transaction.atomic():
+
             # Create the applicant profile
             applicant_profile = ApplicantProfile.objects.create(**validated_data)
-            
+
+            # Create the university (or retrieve it)
+            if university:
+                university_serializer = UniversitySerializer(data=university)
+                university_serializer.is_valid(raise_exception=True)
+                university_instance = university_serializer.save()
+                applicant_profile.university = university_instance
+
             # If user account creation is requested
             if create_user_account:
-                self.create_usr_account(applicant_profile, username, password)
+                ApplicantProfileSerializer.create_usr_account(applicant_profile, username, password)
+
         return applicant_profile
-        
+
     def update(self, instance, validated_data):
         """
         Update an existing applicant profile, and optionally update the user account if needed.
@@ -265,21 +325,21 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
         create_user_account = validated_data.pop('create_user_account', None)
         username = validated_data.pop('username', None)
         password = validated_data.pop('password', None)
-        
+
         first_name = validated_data.get('first_name', None)
         last_name = validated_data.get('last_name', None)
         gender = validated_data.get('gender', None)
         date_of_birth = validated_data.get('date_of_birth', None)
         new_email = validated_data.get('email', None)
         phone = validated_data.get('phone', None)
-        
+
         old_mail = instance.email
-        
+
         if new_email and new_email != old_mail and ApplicantProfile.objects.filter(email=new_email).exists():
             raise serializers.ValidationError({"email": "This email is already taken."})
         else:
             instance.email = new_email
-        
+
         if first_name is not None:
             instance.first_name = first_name
         if last_name is not None:
@@ -290,14 +350,14 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
             instance.date_of_birth = date_of_birth
         if phone is not None:
             instance.phone = phone
-        
+
         instance.save()
-         
+
         if create_user_account:
             self.create_usr_account(instance, username, password)
-        
+
         return instance
-                 
+
 
 class ApplicationSerializer(serializers.ModelSerializer):
     """
@@ -307,52 +367,53 @@ class ApplicationSerializer(serializers.ModelSerializer):
         view_name='psycho:application-detail',
         read_only=True,
     )
-    applicant_profile_data = ApplicantProfileSerializer(write_only=True)
-    
+    # applicant_profile_data = ApplicantProfileSerializer(write_only=True)
+    applicant = ApplicantProfileSerializer()  # Should be read-only ; but is left as this to use the drf browsable API
+
     class Meta:
         model = Application
         fields = [
             'url',
             'application_id',
+            'tracking_id',
             'applicant',
             'status',
             'date_submitted',
             'date_updated',
-            'applicant_profile_data',
         ]
-        
+
         read_only_fields = [
             'application_id',
+            'tracking_id',
             'date_submitted',
             'date_updated',
-            'applicant',
         ]
-        
+
     def create(self, validated_data):
         """
         Create a new application.
         """
-        applicant_profile_data = validated_data.pop('applicant_profile_data', None)
-        
-        with transaction.atomic():  # Transaction because save tries to create an applicant profile if it does not exist.
-            application = Application(**validated_data)
+        applicant_profile_data = validated_data.pop('applicant', None)
+
+        with transaction.atomic():  # Transaction because save tries to create an applicant profile if
+            # it does not exist, thus the database hit must be atomic.
+
+            # Here we delegate the applicant profile creation to the nested serializer, not the Model manager
+            if applicant_profile_data:
+                applicant_serializer = ApplicantProfileSerializer(data=applicant_profile_data)
+                applicant_serializer.is_valid(raise_exception=True)
+                applicant_instance = applicant_serializer.save()
+
+            application = Application(**validated_data, applicant=applicant_instance)
             try:
-                application.save(applicant_profile_data=applicant_profile_data)
+                application.save()
             except ValueError as ve:
                 message = str(ve)
-                if "first_name" in message:
-                    raise serializers.ValidationError({"first_name": message})
-                elif "last_name" in message:
-                    raise serializers.ValidationError({"last_name": message})
-                elif "date_of_birth" in message:
-                    raise serializers.ValidationError({"date_of_birth": message})
-                elif "email" in message:
-                    raise serializers.ValidationError({"email": message})
-                elif "phone" in message:
-                    raise serializers.ValidationError({"phone": message})
-                else:
-                    raise serializers.ValidationError({"non_field_errors": message})
+                field_names = ['first_name', 'last_name', 'date_of_birth', 'email', 'phone']
+                for field in field_names:
+                    if field in message:
+                        raise serializers.ValidationError({field: message})
+                # fallback generic error
+                raise serializers.ValidationError(message) from ve
 
         return application
-    
-    

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 
 const ApplicationFormSection = ({
@@ -27,7 +27,7 @@ const ApplicationFormSection = ({
 
         if (currentSectionName === "educationalBackground") {
             toValidate = ["degree", "highSchool"];
-            if (["bachelor", "master", "phd"].includes(getValues("degree"))) {
+            if (["BACHELOR", "MASTER", "PHD"].includes(getValues("degree"))) {
                 toValidate.push("university");
             }
         }
@@ -47,7 +47,7 @@ const ApplicationFormSection = ({
     // If the degree is highSchool, we need to unregister university fields so handleSubmit
     // won't validate those fields again (the validation there will fail).
     useEffect(() => {
-        if (degree === "highSchool" || degree === "") {
+        if (degree === "HIGHSCHOOL" || degree === "") {
             unregister([
                 "university.name",
                 "university.fieldOfStudy",

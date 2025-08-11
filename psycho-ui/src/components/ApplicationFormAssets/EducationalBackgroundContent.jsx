@@ -1,36 +1,15 @@
 import { useFormContext } from "react-hook-form";
 import HighSchoolDetails from "./HighSchoolDetails";
 import UniversityDegreeDetails from "./UniversityDegreeDetails";
-import { useEffect } from "react";
 
 export default function EducationalBackgroundContent() {
     const {
         register,
         watch,
-        unregister,
-        clearErrors,
         formState: { errors },
     } = useFormContext();
 
     const degree = watch("degree") || "";
-
-    // If the degree is highSchool, we need to unregister university fields so handleSubmit
-    // won't validate those fields again (the validation there will fail).
-    useEffect(() => {
-        if (degree === "highSchool" || degree === "") {
-            unregister([
-                "university.name",
-                "university.fieldOfStudy",
-                "university.average",
-            ]);
-            // Clear errors manually
-            clearErrors([
-                "university.name",
-                "university.fieldOfStudy",
-                "university.average",
-            ]);
-        }
-    }, [unregister, degree, clearErrors]); // Add clearErrors to dependencies
 
     return (
         <>
@@ -57,10 +36,10 @@ export default function EducationalBackgroundContent() {
                         <option value="" disabled hidden>
                             Choose
                         </option>
-                        <option value="highSchool">Bac</option>
-                        <option value="bachelor">Bachelor</option>
-                        <option value="master">Master</option>
-                        <option value="phd">PhD</option>
+                        <option value="HIGHSCHOOL">Bac</option>
+                        <option value="BACHELOR">Bachelor</option>
+                        <option value="MASTER">Master</option>
+                        <option value="PHD">PhD</option>
                     </select>
                     <p className="error-message">{errors.degree?.message}</p>
                 </div>
@@ -69,9 +48,9 @@ export default function EducationalBackgroundContent() {
             <HighSchoolDetails />
 
             {/* Show university-related degrees */}
-            {(degree === "bachelor" ||
-                degree === "master" ||
-                degree === "phd") && (
+            {(degree === "BACHELOR" ||
+                degree === "MASTER" ||
+                degree === "PHD") && (
                 <UniversityDegreeDetails degree={degree} />
             )}
         </>

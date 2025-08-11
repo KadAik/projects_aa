@@ -21,16 +21,16 @@ export const initialApplicationFormData = {
     personalHistory: {
         firstName: "",
         lastName: "",
-        birthDate: "",
+        dateOfBirth: "",
         gender: "",
         email: "",
         phone: "",
     },
 
     highSchool: {
-        baccalaureateSerie: "",
+        baccalaureateSeries: "",
         baccalaureateSession: "",
-        average: "",
+        baccalaureateAverage: "",
     },
 
     university: {
