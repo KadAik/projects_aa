@@ -97,18 +97,23 @@ class ApplicationViewSet(viewsets.ViewSet):
 
         # Sorting
         sort_by = request.query_params.get("sort_by")
-        print("Should sort by: ", sort_by)
         if sort_by:
+            if isinstance(sort_by, str):
+                sort_by = sort_by.split(",")  # single sort
             sort_by_ = []
-            sort_by = sort_by.split(",")
-            # For nested field we should prefix by the instance name
             for field in sort_by:
-                if field not in ['status', 'date_submitted', 'date_updated']:
-                    sort_by_.append(f"-applicant__{field[1:]}") if field.startswith("-") else sort_by_.append(
-                        f"applicant__{field}")
+                descending = field.startswith("-")
+                clean_field = field.lstrip("-")  # remove "-" before checks
+
+                if clean_field in ["status", "date_submitted", "date_updated"]:
+                    sort_by_.append(f"-{clean_field}" if descending else clean_field)
                 else:
-                    sort_by_.append(field)
+                    sort_by_.append(
+                        f"-applicant__{clean_field}" if descending else f"applicant__{clean_field}"
+                    )
+
             print("Should sort by: ", sort_by_)
+            queryset = queryset.order_by(*sort_by_)
 
             queryset = queryset.order_by(*sort_by_)
 
