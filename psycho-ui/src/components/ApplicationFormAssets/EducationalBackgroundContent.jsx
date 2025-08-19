@@ -1,6 +1,23 @@
 import { useFormContext } from "react-hook-form";
+import {
+    Grid,
+    Typography,
+    FormControl,
+    InputLabel,
+    Select,
+    TextField,
+    MenuItem,
+    FormHelperText,
+} from "@mui/material";
 import HighSchoolDetails from "./HighSchoolDetails";
 import UniversityDegreeDetails from "./UniversityDegreeDetails";
+
+const degreeOptions = [
+    { value: "HIGHSCHOOL", label: "Bac" },
+    { value: "BACHELOR", label: "Licence" },
+    { value: "MASTER", label: "Master" },
+    { value: "PHD", label: "Doctorat" },
+];
 
 export default function EducationalBackgroundContent() {
     const {
@@ -13,41 +30,45 @@ export default function EducationalBackgroundContent() {
 
     return (
         <>
-            <p className="notice">
+            <Typography variant="body2" sx={{ mb: 2 }}>
                 Required fields are followed by{" "}
                 <span aria-label="required">*</span>
-            </p>
-            <div className="form-group row">
-                <label htmlFor="degree">
-                    Niveau académique
-                    <strong>
-                        <span aria-label="required">
-                            <sup>*</sup>
-                        </span>
-                    </strong>
-                    :
-                </label>
-                <div className="input-wrapper">
-                    <select
-                        id="degree"
-                        {...register("degree")}
-                        className={errors.degree ? "error" : ""}
-                    >
-                        <option value="" disabled hidden>
-                            Choose
-                        </option>
-                        <option value="HIGHSCHOOL">Bac</option>
-                        <option value="BACHELOR">Bachelor</option>
-                        <option value="MASTER">Master</option>
-                        <option value="PHD">PhD</option>
-                    </select>
-                    <p className="error-message">{errors.degree?.message}</p>
-                </div>
-            </div>
+            </Typography>
 
+            <Grid
+                container
+                spacing={2}
+                sx={{
+                    border: "1px solid #ccc",
+                    padding: 2,
+                    borderRadius: 1,
+                    width: "100%",
+                }}
+            >
+                {/* Academic Level (degree) */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                        fullWidth
+                        select
+                        label="Niveau académique *"
+                        {...register("degree")}
+                        error={!!errors.degree}
+                        helperText={errors.degree?.message}
+                        value={degree} // Because mui is not getting the default value from RHF
+                    >
+                        {degreeOptions.map((option) => (
+                            <MenuItem key={option.value} value={option.value}>
+                                {option.label}
+                            </MenuItem>
+                        ))}
+                    </TextField>
+                </Grid>
+            </Grid>
+
+            {/* High School Section */}
             <HighSchoolDetails />
 
-            {/* Show university-related degrees */}
+            {/* University Degrees */}
             {(degree === "BACHELOR" ||
                 degree === "MASTER" ||
                 degree === "PHD") && (

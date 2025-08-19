@@ -169,6 +169,7 @@ class ApplicantProfile(models.Model, NormalizeFieldsMixin):
         HIGHSCHOOL = 'HIGHSCHOOL', _('High School')
         BACHELOR = 'BACHELOR', _('Bachelor')
         MASTER = 'MASTER', _('Master')
+        PHD = 'PHD', _('Phd')
 
     class BaccalaureateSeries(models.TextChoices):
         BAC_D = 'D', _('BAC D')

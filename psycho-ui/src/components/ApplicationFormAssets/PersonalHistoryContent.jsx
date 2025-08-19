@@ -1,159 +1,143 @@
 import { useFormContext } from "react-hook-form";
+import {
+    Grid,
+    TextField,
+    Select,
+    MenuItem,
+    InputLabel,
+    FormControl,
+    FormHelperText,
+    Typography,
+} from "@mui/material";
+
+import InputAdornment from "@mui/material/InputAdornment";
+
+const genderOptions = [
+    { value: "M", label: "Masculin" },
+    { value: "F", label: "Féminin" },
+];
 
 export default function PersonalHistoryContent() {
     const {
         register,
+        watch,
         formState: { errors },
     } = useFormContext();
 
-    // Error handling utility
     const getError = (fieldName) => errors.personalHistory?.[fieldName];
-    const hasError = (fieldName) => !!getError(fieldName);
 
     return (
         <>
-            <p className="notice">
+            <Typography variant="body2" sx={{ mb: 2 }}>
                 Required fields are followed by{" "}
                 <span aria-label="required">*</span>
-            </p>
+            </Typography>
 
-            <div className="form-group row">
-                <label htmlFor="firstName">
-                    Prénom{" "}
-                    <strong>
-                        <span aria-label="required">
-                            <sup>*</sup>
-                        </span>
-                    </strong>
-                </label>
-                <div className="input-wrapper">
-                    <input
-                        type="text"
-                        id="firstName"
-                        className={hasError("firstName") ? "error" : ""}
+            <Grid
+                container
+                spacing={2}
+                gap={3}
+                sx={{
+                    border: "1px solid #ccc",
+                    padding: 2,
+                    borderRadius: 1,
+                    width: "100%",
+                }}
+            >
+                {/* First Name */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                        fullWidth
+                        label="Prénom *"
+                        error={!!getError("firstName")}
+                        helperText={getError("firstName")?.message || ""}
                         {...register("personalHistory.firstName")}
                     />
-                    <p className="error-message">
-                        {getError("firstName")?.message}
-                    </p>
-                </div>
-            </div>
+                </Grid>
 
-            <div className="form-group row">
-                <label htmlFor="lastName">
-                    Nom{" "}
-                    <strong>
-                        <span aria-label="required">
-                            <sup>*</sup>
-                        </span>
-                    </strong>
-                </label>
-                <div className="input-wrapper">
-                    <input
-                        type="text"
-                        id="lastName"
-                        className={hasError("lastName") ? "error" : ""}
+                {/* Last Name */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                        fullWidth
+                        label="Nom *"
+                        error={!!getError("lastName")}
+                        helperText={getError("lastName")?.message || ""}
                         {...register("personalHistory.lastName")}
                     />
-                    <p className="error-message">
-                        {getError("lastName")?.message}
-                    </p>
-                </div>
-            </div>
+                </Grid>
 
-            <div className="form-group row">
-                <label htmlFor="date-of-birth">
-                    Date de naissance{" "}
-                    <strong>
-                        <span aria-label="required">
-                            <sup>*</sup>
-                        </span>
-                    </strong>
-                </label>
-                <div className="input-wrapper">
-                    <input
+                {/* Date of Birth */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                        fullWidth
                         type="date"
-                        id="date-of-birth"
-                        className={hasError("birthDate") ? "error" : ""}
+                        label="Date de naissance *"
+                        slotProps={{ inputLabel: { shrink: true } }}
+                        error={!!getError("dateOfBirth")}
+                        helperText={getError("dateOfBirth")?.message || ""}
                         {...register("personalHistory.dateOfBirth")}
                     />
-                    <p className="error-message">
-                        {getError("dateOfBirth")?.message}
-                    </p>
-                </div>
-            </div>
+                </Grid>
 
-            <div className="form-group row">
-                <label htmlFor="gender">
-                    Genre{" "}
-                    <strong>
-                        <span aria-label="required">
-                            <sup>*</sup>
-                        </span>
-                    </strong>
-                </label>
-                <div className="input-wrapper">
-                    <select
-                        id="gender"
-                        className={hasError("gender") ? "error" : ""}
-                        {...register("personalHistory.gender")}
-                    >
-                        <option value="" disabled hidden>
-                            Choose
-                        </option>
-                        <option value="M">M</option>
-                        <option value="F">F</option>
-                    </select>
-                    <p className="error-message">
-                        {getError("gender")?.message}
-                    </p>
-                </div>
-            </div>
+                {/* Gender */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <FormControl fullWidth error={!!getError("gender")}>
+                        <InputLabel id="gender">Genre *</InputLabel>
+                        <Select
+                            labelId="gender"
+                            label="Genre *"
+                            {...register("personalHistory.gender")}
+                            value={watch("personalHistory.gender") || ""} // Because mui is not getting the default value from RHF
+                        >
+                            {genderOptions.map((option) => (
+                                <MenuItem
+                                    key={option.value}
+                                    value={option.value}
+                                >
+                                    {option.label}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                        <FormHelperText>
+                            {getError("gender")?.message}
+                        </FormHelperText>
+                    </FormControl>
+                </Grid>
 
-            <div className="form-group row">
-                <label htmlFor="email">
-                    Email{" "}
-                    <strong>
-                        <span aria-label="required">
-                            <sup>*</sup>
-                        </span>
-                    </strong>
-                </label>
-                <div className="input-wrapper">
-                    <input
+                {/* Email */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                        fullWidth
                         type="email"
-                        id="email"
-                        className={hasError("email") ? "error" : ""}
+                        label="Email *"
+                        error={!!getError("email")}
+                        helperText={getError("email")?.message || ""}
                         {...register("personalHistory.email")}
                     />
-                    <p className="error-message">
-                        {getError("email")?.message}
-                    </p>
-                </div>
-            </div>
+                </Grid>
 
-            <div className="form-group row">
-                <label htmlFor="phone">
-                    Numéro de téléphone{" "}
-                    <strong>
-                        <span aria-label="required">
-                            <sup>*</sup>
-                        </span>
-                    </strong>
-                </label>
-                <div className="input-wrapper">
-                    <input
+                {/* Phone */}
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <TextField
+                        fullWidth
                         type="tel"
-                        id="phone"
-                        className={hasError("phone") ? "error" : ""}
+                        label="Numéro de téléphone *"
+                        placeholder="01 90 00 00 00"
+                        error={!!getError("phone")}
+                        helperText={getError("phone")?.message || ""}
                         {...register("personalHistory.phone")}
-                        placeholder="e.g: +229 01 90 00 00 00"
+                        slotProps={{
+                            input: {
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        +229
+                                    </InputAdornment>
+                                ),
+                            },
+                        }}
                     />
-                    <p className="error-message">
-                        {getError("phone")?.message}
-                    </p>
-                </div>
-            </div>
+                </Grid>
+            </Grid>
         </>
     );
 }

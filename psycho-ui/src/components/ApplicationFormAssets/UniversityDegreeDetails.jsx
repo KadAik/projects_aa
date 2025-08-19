@@ -1,4 +1,5 @@
 import { useFormContext } from "react-hook-form";
+import { Grid, TextField, Typography } from "@mui/material";
 
 export default function UniversityDegreeDetails({ degree }) {
     const {
@@ -9,83 +10,75 @@ export default function UniversityDegreeDetails({ degree }) {
     const getError = (fieldName) => errors.university?.[fieldName];
     const hasError = (fieldName) => !!getError(fieldName);
 
+    const degreeLabel =
+        degree === "BACHELOR"
+            ? "la Licence"
+            : degree === "MASTER"
+            ? "le Master"
+            : "le Doctorat";
+
     return (
-        <div className="degree-details">
-            <h4>
-                Informations sur{" "}
-                {degree === "BACHELOR"
-                    ? "la Licence"
-                    : degree === "MASTER"
-                    ? "le Master"
-                    : "le Doctorat"}
-            </h4>
+        <Grid
+            container
+            spacing={2}
+            sx={{
+                mt: 3,
+                width: "100%",
+                border: "1px solid #ccc",
+                p: 2,
+                borderRadius: 1,
+            }}
+        >
+            <Grid size={{ xs: 12, md: 6 }}>
+                <Typography
+                    variant="h6"
+                    gutterBottom
+                    sx={{
+                        fontSize: "1.2rem",
+                        borderBottom: "1px solid #ccc",
+                        pb: 1,
+                    }}
+                >
+                    Informations sur {degreeLabel}
+                </Typography>
+            </Grid>
 
-            <div className="form-group row">
-                <label htmlFor="university">
-                    Université
-                    <strong>
-                        <span aria-label="required">
-                            <sup>*</sup>
-                        </span>
-                    </strong>
-                    :
-                </label>
-                <div className="input-wrapper">
-                    <input
-                        type="text"
-                        id="university"
-                        {...register("university.name")}
-                        className={hasError("name") ? "error" : ""}
-                    />
-                    <p className="error-message">{getError("name")?.message}</p>
-                </div>
-            </div>
+            {/* Université */}
+            <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                    fullWidth
+                    label="Université"
+                    variant="outlined"
+                    error={hasError("name")}
+                    helperText={getError("name")?.message || ""}
+                    {...register("university.name")}
+                />
+            </Grid>
 
-            <div className="form-group row">
-                <label htmlFor="field-of-study">
-                    Spécialisation
-                    <strong>
-                        <span aria-label="required">
-                            <sup>*</sup>
-                        </span>
-                    </strong>
-                    :
-                </label>
-                <div className="input-wrapper">
-                    <input
-                        type="text"
-                        id="field-of-study"
-                        {...register("university.fieldOfStudy")}
-                        className={hasError("fieldOfStudy") ? "error" : ""}
-                    />
-                    <p className="error-message">
-                        {getError("fieldOfStudy")?.message}
-                    </p>
-                </div>
-            </div>
+            {/* Spécialisation */}
+            <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                    fullWidth
+                    label="Spécialisation"
+                    variant="outlined"
+                    error={hasError("fieldOfStudy")}
+                    helperText={getError("fieldOfStudy")?.message || ""}
+                    {...register("university.fieldOfStudy")}
+                />
+            </Grid>
 
-            <div className="form-group row">
-                <label htmlFor="average">
-                    Moyenne obtenue
-                    <strong>
-                        <span aria-label="required">
-                            <sup>*</sup>
-                        </span>
-                    </strong>
-                    :
-                </label>
-                <div className="input-wrapper">
-                    <input
-                        type="phone"
-                        id="average"
-                        {...register("university.average")}
-                        className={hasError("average") ? "error" : ""}
-                    />
-                    <p className="error-message">
-                        {getError("average")?.message}
-                    </p>
-                </div>
-            </div>
-        </div>
+            {/* Moyenne */}
+            <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                    fullWidth
+                    label="Moyenne obtenue"
+                    variant="outlined"
+                    type="number"
+                    error={hasError("average")}
+                    helperText={getError("average")?.message || ""}
+                    {...register("university.average")}
+                />
+            </Grid>
+        </Grid>
     );
 }

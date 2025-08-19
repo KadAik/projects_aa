@@ -1,4 +1,5 @@
 import { useFormContext } from "react-hook-form";
+import { Box, Typography, List, ListItem, Paper, Divider } from "@mui/material";
 
 const degreeLabels = {
     HIGHSCHOOL: "le Baccalauréat",
@@ -7,83 +8,197 @@ const degreeLabels = {
     PHD: "le Doctorat",
 };
 
-export default function AppplicationRecapPage() {
+export default function ApplicationRecapPage() {
     const { getValues } = useFormContext();
-
     const { degree, personalHistory, highSchool, university } = getValues();
 
     return (
-        <>
-            <section className="recap-section">
-                <h3>Informations personnelles</h3>
-                <ul>
-                    <li>
-                        <strong>Prénom:</strong> {personalHistory.firstName}
-                    </li>
-                    <li>
-                        <strong>Nom:</strong> {personalHistory.lastName}
-                    </li>
-                    <li>
-                        <strong>Date de naissance:</strong>{" "}
-                        {personalHistory.dateOfBirth}
-                    </li>
-                    <li>
-                        <strong>Sexe:</strong>{" "}
-                        {personalHistory.gender === "M"
-                            ? "Masculin"
-                            : "Féminin"}
-                    </li>
-                    <li>
-                        <strong>Email:</strong> {personalHistory.email}
-                    </li>
-                    <li>
-                        <strong>Téléphone:</strong> {personalHistory.phone}
-                    </li>
-                </ul>
-            </section>
+        <Box sx={{ maxWidth: 800, mx: "auto", p: 2 }}>
+            {/* Personal Information Section */}
+            <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
+                <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    Informations personnelles
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <List>
+                    <ListItem sx={{ px: 0 }}>
+                        <Typography
+                            sx={{
+                                borderLeft: "3px solid #1976d2",
+                                pl: 1,
+                                borderRadius: 1,
+                            }}
+                        >
+                            <strong>Prénom:</strong> {personalHistory.firstName}
+                        </Typography>
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                        <Typography
+                            sx={{
+                                borderLeft: "3px solid #1976d2",
+                                pl: 1,
+                                borderRadius: 1,
+                            }}
+                        >
+                            <strong>Nom:</strong> {personalHistory.lastName}
+                        </Typography>
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                        <Typography
+                            sx={{
+                                borderLeft: "3px solid #1976d2",
+                                pl: 1,
+                                borderRadius: 1,
+                            }}
+                        >
+                            <strong>Date de naissance:</strong>{" "}
+                            {personalHistory.dateOfBirth}
+                        </Typography>
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                        <Typography
+                            sx={{
+                                borderLeft: "3px solid #1976d2",
+                                pl: 1,
+                                borderRadius: 1,
+                            }}
+                        >
+                            <strong>Sexe:</strong>{" "}
+                            {personalHistory.gender === "M"
+                                ? "Masculin"
+                                : "Féminin"}
+                        </Typography>
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                        <Typography
+                            sx={{
+                                borderLeft: "3px solid #1976d2",
+                                pl: 1,
+                                borderRadius: 1,
+                            }}
+                        >
+                            <strong>Email:</strong> {personalHistory.email}
+                        </Typography>
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                        <Typography
+                            sx={{
+                                borderLeft: "3px solid #1976d2",
+                                pl: 1,
+                                borderRadius: 1,
+                            }}
+                        >
+                            <strong>Téléphone:</strong> {personalHistory.phone}
+                        </Typography>
+                    </ListItem>
+                </List>
+            </Paper>
 
-            <section className="recap-section">
-                <h3>Parcours académique</h3>
-                <ul>
-                    <li>
-                        <strong>Niveau académique:</strong>
-                        {degreeLabels[degree]?.slice(2)}
-                    </li>
+            {/* Academic Information Section */}
+            <Paper elevation={2} sx={{ p: 2 }}>
+                <Typography variant="h6" fontWeight="bold" gutterBottom>
+                    Parcours académique
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <List>
+                    <ListItem sx={{ px: 0 }}>
+                        <Typography
+                            sx={{
+                                borderLeft: "3px solid #1976d2",
+                                pl: 1,
+                                borderRadius: 1,
+                            }}
+                        >
+                            <strong>Niveau académique:</strong>{" "}
+                            {degreeLabels[degree]?.slice(2)}
+                        </Typography>
+                    </ListItem>
 
                     {["BACHELOR", "MASTER", "PHD"].includes(degree) && (
                         <>
-                            <h4>Informations sur {degreeLabels[degree]}</h4>
-                            <li>
-                                <strong>Université:</strong> {university.name}
-                            </li>
-                            <li>
-                                <strong>Domaine d'études:</strong>{" "}
-                                {university.fieldOfStudy}
-                            </li>
-                            <li>
-                                <strong>Moyenne obtenue:</strong>{" "}
-                                {university.average}
-                            </li>
+                            <Typography variant="subtitle1" mt={2} mb={1}>
+                                Informations sur {degreeLabels[degree]}
+                            </Typography>
+                            <ListItem sx={{ px: 0 }}>
+                                <Typography
+                                    sx={{
+                                        borderLeft: "3px solid #1976d2",
+                                        pl: 1,
+                                        borderRadius: 1,
+                                    }}
+                                >
+                                    <strong>Université:</strong>{" "}
+                                    {university.name}
+                                </Typography>
+                            </ListItem>
+                            <ListItem sx={{ px: 0 }}>
+                                <Typography
+                                    sx={{
+                                        borderLeft: "3px solid #1976d2",
+                                        pl: 1,
+                                        borderRadius: 1,
+                                    }}
+                                >
+                                    <strong>Domaine d'études:</strong>{" "}
+                                    {university.fieldOfStudy}
+                                </Typography>
+                            </ListItem>
+                            <ListItem sx={{ px: 0 }}>
+                                <Typography
+                                    sx={{
+                                        borderLeft: "3px solid #1976d2",
+                                        pl: 1,
+                                        borderRadius: 1,
+                                    }}
+                                >
+                                    <strong>Moyenne obtenue:</strong>{" "}
+                                    {university.average}
+                                </Typography>
+                            </ListItem>
                         </>
                     )}
 
-                    <>
-                        <h4>Informations sur le baccalauréat</h4>
-                        <li>
+                    <Typography variant="subtitle1" mt={2} mb={1}>
+                        Informations sur le baccalauréat
+                    </Typography>
+                    <ListItem sx={{ px: 0 }}>
+                        <Typography
+                            sx={{
+                                borderLeft: "3px solid #1976d2",
+                                pl: 1,
+                                borderRadius: 1,
+                            }}
+                        >
                             <strong>Série du Bac:</strong>{" "}
                             {highSchool.baccalaureateSerie}
-                        </li>
-                        <li>
+                        </Typography>
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                        <Typography
+                            sx={{
+                                borderLeft: "3px solid #1976d2",
+                                pl: 1,
+                                borderRadius: 1,
+                            }}
+                        >
                             <strong>Session:</strong>{" "}
                             {highSchool.baccalaureateSession}
-                        </li>
-                        <li>
+                        </Typography>
+                    </ListItem>
+                    <ListItem sx={{ px: 0 }}>
+                        <Typography
+                            sx={{
+                                borderLeft: "3px solid #1976d2",
+                                pl: 1,
+                                borderRadius: 1,
+                            }}
+                        >
                             <strong>Moyenne:</strong>{" "}
                             {highSchool.baccalaureateAverage}
-                        </li>
-                    </>
-                </ul>
-            </section>
-        </>
+                        </Typography>
+                    </ListItem>
+                </List>
+            </Paper>
+        </Box>
     );
 }

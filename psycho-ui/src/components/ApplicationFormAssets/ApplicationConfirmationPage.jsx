@@ -1,42 +1,137 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import "../styles/applicationConfirmationPage.css";
+import { useNavigate } from "react-router-dom";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import { Box, Typography, Paper, Button, Stack, Divider } from "@mui/material";
 
 export default function ApplicationConfirmationPage({ email, trackingNumber }) {
     const navigate = useNavigate();
-    const { state } = useLocation();
 
     return (
-        <div className="confirmation-page">
-            <div className="confirmation-card">
-                <div className="confirmation-icon">✓</div>
-                <h2>Votre candidature a été bien soumise</h2>
+        <Box
+            sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                minHeight: "60vh",
+                p: 2,
+                backgroundColor: "#f8f9fa", // Light grey background
+            }}
+        >
+            <Paper
+                elevation={3}
+                sx={{
+                    p: { xs: 2, md: 4 },
+                    maxWidth: 500,
+                    width: "100%",
+                    textAlign: "center",
+                    borderRadius: 2,
+                }}
+            >
+                {/* Success Icon */}
+                <CheckCircleOutlineIcon
+                    sx={{
+                        fontSize: 60,
+                        mb: 2,
+                        color: "#4caf50", // Green color
+                    }}
+                />
 
-                <p className="confirmation-message">
-                    Une confirmation vous a été envoyée à{" "}
-                    <strong>{email}</strong>.
-                </p>
+                {/* Main Title */}
+                <Typography
+                    variant="h5"
+                    component="h1"
+                    gutterBottom
+                    sx={{
+                        fontWeight: 700,
+                        color: "#333",
+                    }}
+                >
+                    Candidature Enregistrée
+                </Typography>
 
-                <div className="application-number">
-                    <strong>Numéro de dossier : </strong>
-                    <span>{trackingNumber}</span>
-                </div>
+                {/* Success Message */}
+                <Typography variant="body1" sx={{ color: "#666" }}>
+                    Votre candidature a été soumise avec succès.
+                </Typography>
 
-                <div className="button-group">
-                    <button
-                        className="btn btn-primary"
-                        onClick={() => navigate("/track", { state })}
+                {/* Confirmation Box */}
+                <Box
+                    sx={{
+                        backgroundColor: "#e8f5e9", // Light green
+                        p: 2,
+                        borderRadius: 1,
+                        mb: 3,
+                        borderLeft: "4px solid #4caf50", // Green accent
+                    }}
+                >
+                    <Typography variant="body1" paragraph>
+                        Un email a été envoyé à{" "}
+                        <span style={{ fontWeight: 600 }}>{email}</span>
+                    </Typography>
+
+                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                        Numéro de dossier :
+                    </Typography>
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            color: "#1976d2", // Blue color
+                            fontWeight: 700,
+                            mt: 1,
+                        }}
                     >
-                        Suivre ma candidature
-                    </button>
+                        {trackingNumber}
+                    </Typography>
+                </Box>
 
-                    <button
-                        className="btn btn-secondary"
-                        onClick={() => navigate("/submitted-data", { state })}
+                <Divider sx={{ my: 2 }} />
+
+                {/* Action Buttons */}
+                <Stack spacing={2}>
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                        <Button
+                            variant="contained"
+                            onClick={() => navigate("/track")}
+                            fullWidth
+                            sx={{
+                                py: 1.5,
+                                backgroundColor: "#1976d2", // Blue
+                                "&:hover": { backgroundColor: "#1565c0" },
+                            }}
+                        >
+                            Suivre ma candidature
+                        </Button>
+
+                        <Button
+                            variant="outlined"
+                            onClick={() => navigate("/submitted-data")}
+                            fullWidth
+                            sx={{
+                                py: 1.5,
+                                borderColor: "#1976d2",
+                                color: "#1976d2",
+                                "&:hover": { borderColor: "#1565c0" },
+                            }}
+                        >
+                            Voir les détails
+                        </Button>
+                    </Stack>
+
+                    <Button
+                        variant="text"
+                        onClick={() => navigate("/")}
+                        sx={{
+                            mt: 1,
+                            color: "#666",
+                            "&:hover": {
+                                backgroundColor: "transparent",
+                                color: "#333",
+                            },
+                        }}
                     >
-                        Consulter les informations soumises
-                    </button>
-                </div>
-            </div>
-        </div>
+                        ← Retour à l'accueil
+                    </Button>
+                </Stack>
+            </Paper>
+        </Box>
     );
 }

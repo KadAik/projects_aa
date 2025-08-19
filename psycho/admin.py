@@ -7,7 +7,7 @@ from psycho.models import ApplicantProfile, User, Application, AdminProfile, HRM
 class ApplicantAdmin(admin.ModelAdmin):
     readonly_fields = ['user', 'date_registered', 'date_updated']
     search_fields = ['email', 'phone']
-    fields = ['user', 'first_name', 'last_name', 'email', 'phone', 'gender', 'date_of_birth']
+    
     list_display = ['first_name', 'last_name', 'date_registered', 'date_updated']
 
 

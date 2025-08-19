@@ -1,17 +1,26 @@
 import { Outlet } from "react-router-dom";
 import Footer from "../components/Footer";
 import NavBar from "../components/NavBar";
+import Navigation from "../components/Navigation";
+import { Box } from "@mui/material";
 
 const DefaultLayout = () => {
     return (
         <>
-            <header>
-                <NavBar />
-            </header>
+            <Box component="header">
+                <Navigation />
+            </Box>
 
-            <main>
+            <Box
+                component="main"
+                sx={{
+                    flex: 1,
+                    flexDirection: "column",
+                    p: 2,
+                }}
+            >
                 <Outlet />
-            </main>
+            </Box>
 
             <Footer />
         </>

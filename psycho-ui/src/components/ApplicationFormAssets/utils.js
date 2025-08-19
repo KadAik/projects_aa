@@ -20,6 +20,8 @@ export function handleFailedApplicationSubmission(
     { dispatchApplicationFormStateAction, setError, setFocus }
 ) {
     // The error is an object returned by the server
+    // The function parses the error and sets the form fields with the corresponding error messages
+    // It also sets the focus on the first field that failed
     const serverErrors = error.applicant || null;
     if (!serverErrors) return;
 
@@ -29,9 +31,8 @@ export function handleFailedApplicationSubmission(
 
     console.log("Err : ", err);
     for (let field in err) {
-        const message = Array.isArray(err[field])
-            ? err[field].join(", ")
-            : err[field];
+        const message =
+            Array.isArray(err[field]) ? err[field].join(", ") : err[field];
 
         failedFieldsMap[field] = message;
 

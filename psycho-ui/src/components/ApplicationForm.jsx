@@ -9,14 +9,15 @@ import ApplicationConfirmationPage from "./ApplicationFormAssets/ApplicationConf
 
 import applicationFormReducer from "./reducers/applicationFormReducer.js";
 
-import "./styles/applicationForm.css";
-
 import { initialApplicationFormData } from "./ApplicationFormAssets/aplicationFormConfig.jsx";
 import { applicationFormSections as sections } from "./ApplicationFormAssets/aplicationFormConfig.jsx";
 
 import { objectFromCamelToSnakeCase } from "../utils/utils.js";
 import { schema } from "./ApplicationFormAssets/validationRules.js";
 import { handleFailedApplicationSubmission } from "./ApplicationFormAssets/utils.js";
+import { Box, CircularProgress, Typography } from "@mui/material";
+import ApplicationFormStepper from "./ApplicationFormAssets/ApplicationFormStepper.jsx";
+import { postData as postApplication } from "../utils/crud.js";
 
 const ApplicationForm = () => {
     const numberOfSections = Object.keys(sections).length;
@@ -36,38 +37,10 @@ const ApplicationForm = () => {
         mode: "onTouched",
         resolver: yupResolver(schema),
         shouldUseNativeValidation: false,
-        defaultValues: initialApplicationFormData,
+        defaultValues: { ...initialApplicationFormData },
     });
 
     const { handleSubmit, getValues, setError, setFocus } = formMethods;
-
-    const postApplication = (applicationDetails) =>
-        axios
-            .post(
-                "http://127.0.0.1:8000/psycho/api/applications/",
-                applicationDetails
-            )
-            .then((response) => {
-                const contentType = response.headers["content-type"];
-
-                console.log("Content type : ", contentType);
-                console.log("Response data with axios : ", response.data);
-
-                return contentType === "application/json"
-                    ? response.data
-                    : response.statusText;
-            })
-            .catch((e) => {
-                console.log("Error with axios : ");
-
-                const errorData =
-                    e.response?.status === 400 ? e.response.data : e.toJSON();
-
-                const err = new Error("Application submission unsuccessful");
-                err.cause = errorData;
-
-                throw err;
-            });
 
     const dataToPost = () => {
         const { personalHistory, degree, highSchool, university } = getValues();
@@ -83,7 +56,11 @@ const ApplicationForm = () => {
     };
 
     const applicationMutation = useMutation({
-        mutationFn: postApplication,
+        mutationFn: (data) =>
+            postApplication(
+                data,
+                "http://127.0.0.1:8000/psycho/api/applications/"
+            ),
         onSuccess: (data) => {
             console.log("Mutation succeeded:", data);
             setConfirmationInfos({
@@ -113,38 +90,78 @@ const ApplicationForm = () => {
 
     const currentSection = sections[applicationFormState.section.index];
 
-    return applicationMutation.isSuccess ? (
-        <ApplicationConfirmationPage
-            email={confirmationInfos.email}
-            trackingNumber={confirmationInfos.trackingNumber}
-        />
-    ) : (
-        <div className="form-wrapper">
-            <form
-                id="application-form"
-                onSubmit={handleSubmit(onSubmit, onError)}
-            >
-                <h2 className="title">Créer ma candidature</h2>
-                <FormProvider {...formMethods}>
-                    <ApplicationFormSection
-                        title={currentSection.title}
-                        applicationFormState={applicationFormState}
-                        dispatchApplicationFormStateAction={
-                            dispatchApplicationFormStateAction
-                        }
+    return applicationMutation.isSuccess ?
+            <ApplicationConfirmationPage
+                email={confirmationInfos.email}
+                trackingNumber={confirmationInfos.trackingNumber}
+            />
+        :   <>
+                <Box className="form-wrapper" sx={{ position: "relative" }}>
+                    <form
+                        id="application-form"
+                        onSubmit={handleSubmit(onSubmit, onError)}
                     >
-                        {currentSection.content}
-                    </ApplicationFormSection>
-                </FormProvider>
-            </form>
+                        <Typography
+                            variant="h1"
+                            sx={{
+                                fontSize: "1.5rem",
+                                marginBottom: "1rem",
+                                textAlign: "center",
+                                fontWeight: "bold",
+                                color: "primary.main",
+                            }}
+                        >
+                            Créer ma candidature
+                        </Typography>
+                        <Box
+                            sx={{
+                                width: "100%",
+                                // boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
+                                padding: "1rem",
+                                borderRadius: "8px",
+                            }}
+                        >
+                            <ApplicationFormStepper
+                                activeStep={currentSection.index}
+                            />
+                        </Box>
+                        <FormProvider {...formMethods}>
+                            <ApplicationFormSection
+                                title={currentSection.title}
+                                applicationFormState={applicationFormState}
+                                dispatchApplicationFormStateAction={
+                                    dispatchApplicationFormStateAction
+                                }
+                            >
+                                {currentSection.content}
+                            </ApplicationFormSection>
+                        </FormProvider>
+                    </form>
 
-            {applicationMutation.isPending && (
-                <div className="form-overlay">
-                    <div className="spinner" />
-                </div>
-            )}
-        </div>
-    );
+                    {applicationMutation.isPending && (
+                        <Box
+                            sx={{
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                width: "100%",
+                                height: "100%",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                zIndex: 1000,
+                                backgroundColor: "rgba(255, 255, 255, 0.6)",
+                            }}
+                        >
+                            <CircularProgress
+                                size={50}
+                                thickness={2}
+                                value={100}
+                            />
+                        </Box>
+                    )}
+                </Box>
+            </>;
 };
 
 export default ApplicationForm;

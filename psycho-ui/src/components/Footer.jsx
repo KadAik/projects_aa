@@ -1,14 +1,35 @@
-export default function Footer(){
-    return(
-        <footer>
-            <section className="general">
-                <p>&copy; 2025 Forces Aériennes Béninoises. Tous droits réservés.</p>
-                <nav className="footer-nav">
-                    <a href="#">Mentions légales</a>
-                    <a href="#">Politique de confidentialité</a>
-                    <a href="#">Contact</a>
-                </nav>
-            </section>
-        </footer>
+import { Box, Stack, Link, Typography } from "@mui/material";
+
+export default function Footer() {
+    return (
+        <Box
+            component="footer"
+            sx={{
+                py: 3,
+                px: 2,
+                backgroundColor: "#f5f5f5",
+                textAlign: "center",
+            }}
+        >
+            <Stack
+                direction="row"
+                spacing={3}
+                justifyContent="center"
+                sx={{ mb: 1 }}
+            >
+                <Link href="#" color="inherit" underline="hover">
+                    Mentions légales
+                </Link>
+                <Link href="#" color="inherit" underline="hover">
+                    L'armée de l'air
+                </Link>
+                <Link href="#" color="inherit" underline="hover">
+                    Contact
+                </Link>
+            </Stack>
+            <Typography variant="body2" color="text.secondary">
+                &copy; 2025 Forces Aériennes Béninoises. Tous droits réservés.
+            </Typography>
+        </Box>
     );
 }

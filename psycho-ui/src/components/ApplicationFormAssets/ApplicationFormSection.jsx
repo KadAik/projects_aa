@@ -1,5 +1,9 @@
 import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Stack from "@mui/material/Stack";
+import Button from "@mui/material/Button";
 
 const ApplicationFormSection = ({
     title,
@@ -57,32 +61,59 @@ const ApplicationFormSection = ({
     }, [unregister, degree]);
 
     return (
-        <section className="application-section">
-            <h3>{title}</h3>
+        <Box
+            component="section"
+            className="application-section"
+            sx={{
+                p: { xs: 2, sm: 3, md: 4 },
+                mb: { xs: 3, md: 4 },
+                borderRadius: 2,
+                boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
+                backgroundColor: "background.paper",
+            }}
+        >
+            <Typography variant="h6" sx={{ mb: 1 }} textAlign={"center"}>
+                {title}
+            </Typography>
             {children}
-            <hr />
-            <div id="nextprev">
-                <button
+            <Box component="hr" sx={{ my: 2, borderColor: "divider" }} />
+            <Stack
+                spacing={2}
+                direction={{ xs: "column", sm: "row" }}
+                justifyContent="space-between"
+            >
+                <Button
+                    variant="outlined"
                     type="button"
                     onClick={handlePreviousClick}
                     disabled={applicationFormState.section.index === 1}
                 >
                     ← Précédent
-                </button>
+                </Button>
+
                 {applicationFormState.section.index <
                     applicationFormState.nbOfSections && (
-                    <button type="button" onClick={handleNextClick}>
+                    <Button
+                        variant="contained"
+                        type="button"
+                        onClick={handleNextClick}
+                    >
                         Suivant →
-                    </button>
+                    </Button>
                 )}
+
                 {applicationFormState.section.index ===
                     applicationFormState.nbOfSections && (
-                    <button type="submit" disabled={isSubmitting}>
+                    <Button
+                        variant="contained"
+                        type="submit"
+                        disabled={isSubmitting}
+                    >
                         {isSubmitting ? "Submitting..." : "Soumettre"}
-                    </button>
+                    </Button>
                 )}
-            </div>
-        </section>
+            </Stack>
+        </Box>
     );
 };
 

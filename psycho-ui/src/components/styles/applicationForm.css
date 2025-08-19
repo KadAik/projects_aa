@@ -99,7 +99,7 @@ hr {
 /* ========= Calendar Icon Wrapper ========= */
 
 /* ========= Utility Spacing ========= */
-div + div {
+form div + div:not(.MuiStep-root) {
     margin-top: 1.5em;
 }
 
