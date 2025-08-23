@@ -9,14 +9,7 @@ import FolderIcon from "@mui/icons-material/Folder";
 import ContactPageIcon from "@mui/icons-material/ContactPage";
 
 const theme = createTheme({
-    palette: {
-        primary: {
-            main: "#1976d2",
-        },
-        secondary: {
-            main: "#dc004e",
-        },
-    },
+    cssVariables: true,
     colorSchemes: { light: true, dark: false },
 });
 

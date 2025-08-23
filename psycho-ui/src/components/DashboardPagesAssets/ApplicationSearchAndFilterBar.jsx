@@ -6,6 +6,7 @@ import {
     Paper,
     IconButton,
     Divider,
+    useTheme,
 } from "@mui/material";
 
 import InputBase from "@mui/material/InputBase";
@@ -35,6 +36,7 @@ const baccalaureateSeries = [
 ];
 
 const TopToolBar = ({ register, watch }) => {
+    const theme = useTheme();
     return (
         <Paper
             elevation={0}
@@ -61,7 +63,11 @@ const TopToolBar = ({ register, watch }) => {
                     id="filter-form"
                 >
                     <Stack direction="column" spacing={1} p={2} minWidth={180}>
-                        <Typography variant="h6" sx={{ fontSize: "0.75rem" }}>
+                        <Typography
+                            variant="h6"
+                            fontSize="0.75rem"
+                            color={theme.palette.text.secondary}
+                        >
                             Status
                         </Typography>
                         <TextField
