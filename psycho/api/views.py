@@ -14,6 +14,7 @@ from psycho.models import (
     ApplicantProfile,
     Application,
 )
+from psycho.paginators import SafePageNumberPagination
 from psycho.serializers import (
     UserSerializer,
     AdminProfileSerializer,
@@ -84,16 +85,15 @@ class ApplicationViewSet(viewsets.ViewSet):
         queryset = Application.objects.select_related('applicant').all()
         # Filters
         status = request.query_params.get('status')
-        print("Status is : ", status)
         degree = request.query_params.get('degree')
-        baccalaureate_series = request.query_params.get('baccalaureateSeries')
+        baccalaureate_series = request.query_params.get('baccalaureate_series')
+
         if status:
-            print("Filtering on status")
             queryset = queryset.filter(status=status)
         if degree:
             queryset = queryset.filter(applicant__degree=degree)
         if baccalaureate_series:
-            queryset = queryset.filter(applicant__baccalaureate_series__contains=baccalaureate_series)
+            queryset = queryset.filter(applicant__baccalaureate_series__exact=baccalaureate_series)
 
         # Sorting
         sort_by = request.query_params.get("sort_by")
@@ -111,14 +111,16 @@ class ApplicationViewSet(viewsets.ViewSet):
                     sort_by_.append(
                         f"-applicant__{clean_field}" if descending else f"applicant__{clean_field}"
                     )
-
-            print("Should sort by: ", sort_by_)
             queryset = queryset.order_by(*sort_by_)
 
             queryset = queryset.order_by(*sort_by_)
 
-        serialized_items = self.serializer_class(instance=queryset, many=True, context={'request': request})
-        return Response(serialized_items.data, status=drf_status.HTTP_200_OK)
+        # Pagination
+        paginator = SafePageNumberPagination()
+        paginated_queryset = paginator.paginate_queryset(queryset, request=request)
+        serialized_items = self.serializer_class(instance=paginated_queryset, many=True, context={'request': request})
+        # return Response(serialized_items.data, status=drf_status.HTTP_200_OK)
+        return paginator.get_paginated_response(serialized_items.data)
 
     def retrieve(self, request, pk):
         """

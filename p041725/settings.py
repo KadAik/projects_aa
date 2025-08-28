@@ -12,8 +12,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
-import rest_framework.pagination
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -135,7 +133,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Custom USER model
 AUTH_USER_MODEL = 'psycho.User'
 
-# For DRF rendering classes
+# For DRF API settings
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
@@ -143,7 +141,7 @@ REST_FRAMEWORK = {
         # 'rest_framework_xml.renderers.XMLRenderer',  # requires djangorestframework-xml
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
+    'PAGE_SIZE': 3,
 }
 
 # The Debug Toolbar is shown only if the IP address is listed in Django’s INTERNAL_IPS setting

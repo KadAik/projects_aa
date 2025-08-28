@@ -1,11 +1,18 @@
 import React, { useEffect, useMemo, useState } from "react";
 
-import { DataGrid, gridClasses, useGridApiRef } from "@mui/x-data-grid";
+import {
+    DataGrid,
+    gridClasses,
+    gridPageCountSelector,
+    useGridApiRef,
+    useGridSelector,
+} from "@mui/x-data-grid";
 import {
     alpha,
     Badge,
     Box,
     IconButton,
+    Pagination,
     Stack,
     Typography,
 } from "@mui/material";
@@ -16,7 +23,12 @@ import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { useGridApiContext } from "@mui/x-data-grid";
 import styled from "@emotion/styled";
-import { blue, blueGrey, lightBlue } from "@mui/material/colors";
+import { blue, blueGrey, grey, lightBlue } from "@mui/material/colors";
+import ApplicationToolBar from "../../components/DashboardPagesAssets/ApplicationToolBar";
+import {
+    ApplicationDataGridContext,
+    useApplicationDataGridContext,
+} from "../../contexts/applicationDataGridContext";
 
 function sortModelFromVerboseToCompactStyle(sortModelVerbose) {
     // Example transform [{ field: "fieldName", sort: "asc" }] to ["fieldName"] or
@@ -27,65 +39,110 @@ function sortModelFromVerboseToCompactStyle(sortModelVerbose) {
 }
 
 function SortIcon({ field }) {
-    const sortModel = useGridApiContext().current?.sortModel || {};
-    const sortHistory = useGridApiContext().current?.sortHistory || [];
+    const { sortHistory = [], sortModel = {} } =
+        useApplicationDataGridContext();
+    // const sortModel = apiRef.current?.sortModelObj || {};
+    // const sortHistory = apiRef.current?.sortHistory || [];
     const sort = sortModel[field]?.sort || "";
     let position = sortHistory.length > 1 ? sortHistory.indexOf(field) + 1 : 0;
-
     const active = Boolean(sort);
 
     return (
-        <Badge badgeContent={position} color="secondary">
-            <Box
-                p={0.5}
-                sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    borderRadius: "50%",
-                    cursor: "pointer",
-                    bgcolor: active ? "primary.light" : "transparent",
-                    color: active ? "#fff" : "transparent",
-                    transition: "all 0.2s ease",
-                    ":hover": {
-                        bgcolor: blueGrey[100],
-                        color: "#fff",
-                    },
-                    "&:hover .hoverIcon": {
-                        color: "#fff", // reveal icon on hover
-                    },
-                }}
-            >
-                {sort === "asc" ?
-                    <ArrowUpwardIcon sx={{ width: 16, height: 16 }} />
-                : sort === "desc" ?
-                    <ArrowDownwardIcon sx={{ width: 16, height: 16 }} />
-                    // show upward icon only on hover when inactive
-                :   <ArrowUpwardIcon
-                        className="hoverIcon"
-                        sx={{ width: 16, height: 16, color: "transparent" }}
-                    />
-                }
-            </Box>
-        </Badge>
+        <>
+            {active && sortHistory.length > 1 ?
+                <Badge badgeContent={position} color="secondary">
+                    <Box
+                        p={0.5}
+                        sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            borderRadius: "50%",
+                            cursor: "pointer",
+                            bgcolor: active ? "primary.light" : "transparent",
+                            color: active ? "#fff" : "transparent",
+                            transition: "all 0.2s ease",
+                            ":hover": {
+                                bgcolor: blueGrey[100],
+                                color: "#fff",
+                            },
+                            "&:hover .hoverIcon": {
+                                color: "#fff",
+                            },
+                        }}
+                    >
+                        {sort === "asc" ?
+                            <ArrowUpwardIcon sx={{ width: 16, height: 16 }} />
+                        : sort === "desc" ?
+                            <ArrowDownwardIcon sx={{ width: 16, height: 16 }} />
+                        :   <ArrowUpwardIcon
+                                className="hoverIcon"
+                                sx={{
+                                    width: 16,
+                                    height: 16,
+                                    color: "transparent",
+                                }}
+                            />
+                        }
+                    </Box>
+                </Badge>
+            :   <Box
+                    p={0.5}
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        borderRadius: "50%",
+                        cursor: "pointer",
+                        bgcolor: active ? "primary.light" : "transparent",
+                        color: active ? "#fff" : "transparent",
+                        transition: "all 0.2s ease",
+                        ":hover": {
+                            bgcolor: blueGrey[100],
+                            color: "#fff",
+                        },
+                        "&:hover .hoverIcon": {
+                            color: "#fff",
+                        },
+                    }}
+                >
+                    {sort === "asc" ?
+                        <ArrowUpwardIcon sx={{ width: 16, height: 16 }} />
+                    : sort === "desc" ?
+                        <ArrowDownwardIcon sx={{ width: 16, height: 16 }} />
+                    :   <ArrowUpwardIcon
+                            className="hoverIcon"
+                            sx={{
+                                width: 16,
+                                height: 16,
+                                color: "transparent",
+                            }}
+                        />
+                    }
+                </Box>
+            }
+        </>
     );
 }
 
-function SortDescIcon({ active = true }) {
+function ActionsPagination({ page, onPageChange, className }) {
+    const apiRef = useGridApiContext();
+    const pageCount = useGridSelector(apiRef, gridPageCountSelector);
+    // DataGrid is 0-based page, but Pagination is 1-based
+    const handleChange = (event, newPageNumber) => {
+        onPageChange(event, newPageNumber - 1);
+    };
     return (
-        <Box
-            p={0.5}
-            sx={{
-                display: "flex",
-                alignItems: "center",
-                borderRadius: "50%",
-                bgcolor: active ? "primary.light" : "transparent",
-                color: active ? "#fff" : "inherit",
-            }}
-        >
-            <ArrowDownwardIcon
-                sx={{ width: 16, height: 16, fontWeight: "bold" }}
-            />
-        </Box>
+        <Pagination
+            count={pageCount}
+            className={className}
+            page={page + 1}
+            onChange={handleChange}
+            boundaryCount={2}
+            shape="rounded"
+            variant="outlined"
+            color="primary"
+            showFirstButton
+            showLastButton
+        />
     );
 }
 
@@ -107,7 +164,7 @@ const columns_ = [
     {
         field: "first_name",
         headerName: "Prénoms",
-        minWidth: 150,
+        minWidth: 155,
         valueGetter: (value, row) => row.applicant?.first_name,
     },
     {
@@ -127,19 +184,33 @@ const columns_ = [
     {
         field: "status",
         headerName: "Statut",
+        valueGetter: (value, row) => row.status,
         minWidth: 130,
         type: "singleSelect",
         valueOptions: ["Pending", "Incomplete", "Accepted", "Rejected"],
     },
     {
+        field: "baccalaureate_series",
+        headerName: "Bac",
+        minWidth: 130,
+        valueGetter: (value, row) => row.applicant?.baccalaureate_series,
+    },
+    {
         field: "tracking_id",
         headerName: "N° de suivi",
+        valueGetter: (value, row) => row.tracking_id,
         minWidth: 130,
         sortable: false,
     },
 ];
 
-const sortableColumns = ["first_name", "last_name", "date_submitted", "status"];
+const sortableColumns = [
+    "first_name",
+    "last_name",
+    "date_submitted",
+    "status",
+    "baccalaureate_series",
+];
 
 const columns = columns_.map((item) => ({
     ...item,
@@ -197,16 +268,12 @@ const StripedDataGrid = styled(DataGrid)(({ theme }) => ({
             backgroundColor: theme.palette.grey[800],
         }),
     },
-    // Styling the header
-    [`& .${gridClasses.columnHeader}`]: {
-        backgroundColor: blue[50],
-    },
 }));
 
 const ApplicationsManager = () => {
     // For multiple fields sorting
     const [ctrlPressed, setCtrlPressed] = useState(false);
-    const { register, watch } = useForm({
+    const { register, watch, reset, setValue } = useForm({
         defaultValues: filtersInitialState,
     });
 
@@ -220,17 +287,35 @@ const ApplicationsManager = () => {
     // Let's attach a custom field (sortModel) to apiRef, for custom use (handle multiple sort in column def)
     // as we cannot directly set this field on the community DataGrid
 
-    if (apiRef.current) {
-        apiRef.current.sortModel = sortModel;
-        apiRef.current.sortHistory = sortHistory;
-    }
+    const [paginationModel, setPaginationModel] = useState({
+        //Django drf pagination is 1-based index whereas Grid is 0-based
+        page: 0,
+        pageSize: 5,
+    });
+
+    const [rowCount, setRowCount] = useState(0);
+
+    // if (apiRef.current) {
+    //     apiRef.current.sortModelObj = sortModel;
+    //     apiRef.current.sortHistory = sortHistory;
+    // }
 
     const filters = watch();
+
+    console.log("The pagination model is : ", paginationModel);
 
     const { data, isLoading } = useApplications({
         filters,
         sort_by: sortModelFromVerboseToCompactStyle(Object.values(sortModel)),
+        pagination: {
+            page: paginationModel.page + 1,
+            pageSize: paginationModel.pageSize,
+        },
     });
+
+    useEffect(() => {
+        setRowCount((prev) => (data?.count !== undefined ? data.count : prev));
+    }, [data?.count]);
 
     useEffect(() => {
         const handleKeyDown = (event) => {
@@ -258,10 +343,10 @@ const ApplicationsManager = () => {
         // We will be keeping sortModel as : {field: {field: fieldName, sort: asc|desc|null}, {...}}
         // in order to facilitate handling (to avoid duplicates fields)
         // Hence when encountering the same field the second time for reverse order, we can easily overwrite the previous.
-
         if (!newSortModel.length) {
-            // Unlikely situation though due to sortingOrder
+            // reset the sort
             setSortModel({});
+            setSortHistory([]);
             return;
         }
 
@@ -314,26 +399,53 @@ const ApplicationsManager = () => {
         }
     };
 
+    const providerValue = useMemo(
+        () => ({ apiRef, sortHistory, sortModel }),
+        [apiRef, sortHistory, sortModel]
+    );
+
     return (
-        <>
+        <ApplicationDataGridContext.Provider value={providerValue}>
+            {" "}
+            {/* Better use a context than attach custom field to apiRef*/}
             <ApplicationSearchAndFilterBar register={register} watch={watch} />
             <Box sx={{ width: "100%", height: "100%" }}>
                 <StripedDataGrid
-                    apiRef={apiRef}
+                    apiRef={apiRef} // If custom props are attached to apiRef, need to set this in order to get them elsewhere; also
+                    // this is required to be able to use apiRef passed elsewhere as prop from slotProps.
+                    // Docs : When using the API object outside the Data Grid components, you need to initialize it
+                    // using the useGridApiRef hook. You can then pass it to the Data Grid's apiRef prop:
                     columns={columns}
-                    rows={data ?? []}
+                    rows={data?.results ?? []}
                     getRowId={(row) => row.application_id}
                     loading={isLoading}
+                    initialState={{
+                        pagination: {
+                            paginationModel: { page: 0, pageSize: 100 },
+                        },
+                    }}
                     sortingMode="server"
                     onSortModelChange={handleSortModelChange}
                     sortingOrder={["asc", "desc", "null"]}
                     showColumnVerticalBorder
                     showToolbar
-                    autoPageSize
-                    //checkboxSelection
+                    //autoPageSize
                     slots={{
                         columnSortedAscendingIcon: null,
                         columnSortedDescendingIcon: null,
+                        toolbar: ApplicationToolBar,
+                    }}
+                    slotProps={{
+                        toolbar: {
+                            sortHistory: sortHistory,
+                            apiRef: apiRef,
+                            filters: filters,
+                            resetFilters: reset,
+                            setFilterValue: setValue,
+                        },
+                        basePagination: {
+                            material: { ActionsComponent: ActionsPagination },
+                        },
                     }}
                     // Strip rows
                     getRowClassName={(params) =>
@@ -342,6 +454,9 @@ const ApplicationsManager = () => {
                         :   "even"
                     }
                     sx={{
+                        "& .MuiDataGrid-columnHeader": {
+                            backgroundColor: lightBlue[50],
+                        },
                         "& .MuiDataGrid-columnHeader .MuiDataGrid-sortButton": {
                             display: "none",
                         },
@@ -350,9 +465,14 @@ const ApplicationsManager = () => {
                             overflow: "visible",
                         },
                     }}
+                    paginationMode="server"
+                    paginationModel={paginationModel}
+                    onPaginationModelChange={setPaginationModel}
+                    rowCount={rowCount}
+                    pageSizeOptions={[5, 10, 20, 30, 100]}
                 />
             </Box>
-        </>
+        </ApplicationDataGridContext.Provider>
     );
 };
 export default ApplicationsManager;
