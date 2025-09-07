@@ -20,7 +20,12 @@ export async function fetchData(source, queryParams = {}) {
     // Expected queryParams structure: { filters: { key: value }, sort_by: [fields] }
     // Example: { filters: { status: "Pending" }, sort_by: ["date_submitted"] }
     // For descending order, use: { sortBy: ["-date_submitted"] }
-    const { filters = {}, sort_by = [], pagination = {} } = queryParams;
+    const {
+        filters = {},
+        sort_by = [],
+        pagination = {},
+        tracking_id = "",
+    } = queryParams;
 
     // Filters
     let queryString = new URLSearchParams();
@@ -41,6 +46,11 @@ export async function fetchData(source, queryParams = {}) {
     }
     if (pageSize) {
         queryString.append("page_size", pageSize);
+    }
+
+    // Tracking
+    if (tracking_id) {
+        queryString.append("tracking_id", tracking_id);
     }
 
     queryString = queryString.toString();

@@ -1,8 +1,6 @@
 import Card from "../Card.jsx";
 import TestimonialSlider from "../TestimonialSlider.jsx";
-
 import { Box, Typography } from "@mui/material";
-import { green } from "@mui/material/colors";
 
 export default function Infos() {
     return (
@@ -12,17 +10,18 @@ export default function Infos() {
                     textAlign: "center",
                     py: 3,
                     px: 2,
-                    borderRadius: 1,
-                    boxShadow: `0 0 10px 0 rgba(0, 0, 0, 0.1)`,
-                    mb: 3,
+                    borderRadius: 2,
+                    background: "linear-gradient(135deg, #e3f2fd, #bbdefb)",
+                    boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
+                    mb: 4,
                 }}
             >
                 <Typography
                     variant="h2"
                     sx={{
                         fontWeight: "bold",
-                        color: "#004747",
-                        fontSize: "1.5rem",
+                        color: "#0d47a1", // deep blue
+                        fontSize: "1.8rem",
                         mt: 0.5,
                         mb: 2,
                     }}
@@ -33,13 +32,13 @@ export default function Infos() {
                 <TestimonialSlider />
             </Box>
 
-            <Box>
+            <Box sx={{ mb: 4 }}>
                 <Typography
                     variant="h4"
                     sx={{
                         fontWeight: "bold",
                         fontSize: "1.5rem",
-                        color: "#004747",
+                        color: "#1565c0", // mid blue
                         mb: 2,
                         px: 2,
                     }}
@@ -48,7 +47,7 @@ export default function Infos() {
                 </Typography>
                 <Typography
                     variant="body1"
-                    sx={{ textAlign: "justify", px: 2 }}
+                    sx={{ textAlign: "justify", px: 2, color: "#1e3a8a" }}
                 >
                     Les tests psychotechniques sont des évaluations
                     standardisées qui mesurent vos capacités cognitives et
@@ -73,7 +72,9 @@ export default function Infos() {
             </Card>
 
             <Card title="🗓 Prochaine session : 20 septembre 2025">
-                <p>Places limitées – inscrivez-vous dès maintenant !</p>
+                <p style={{ color: "#0d47a1", fontWeight: 600 }}>
+                    Places limitées – inscrivez-vous dès maintenant !
+                </p>
             </Card>
         </>
     );

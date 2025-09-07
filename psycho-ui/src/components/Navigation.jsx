@@ -1,11 +1,13 @@
 import { AppBar, Box, IconButton, Toolbar } from "@mui/material";
 import React from "react";
-import CollapsableMenu from "./NavBarAssets/CollapsableMenu";
+import CollapsibleMenu from "./NavBarAssets/CollapsibleMenu";
 import NavTabs from "./NavBarAssets/NavTabs";
 
 import logo from "../assets/logo.png";
+import { useNavigate } from "react-router-dom";
 
 const Navigation = () => {
+    const navigate = useNavigate();
     return (
         <Box component="nav">
             <AppBar position="static" sx={{ backgroundColor: "#f0f0f0" }}>
@@ -16,6 +18,7 @@ const Navigation = () => {
                         color="inherit"
                         aria-label="menu"
                         sx={{ mr: 2 }}
+                        onClick={() => navigate("/")}
                     >
                         <img
                             src={logo}
@@ -35,7 +38,7 @@ const Navigation = () => {
                         <NavTabs />
                     </Box>
                     <Box sx={{ marginTop: 0, marginLeft: "auto" }}>
-                        <CollapsableMenu />
+                        <CollapsibleMenu />
                     </Box>
                 </Toolbar>
             </AppBar>

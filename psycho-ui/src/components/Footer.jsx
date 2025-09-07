@@ -1,4 +1,5 @@
 import { Box, Stack, Link, Typography } from "@mui/material";
+import { green } from "@mui/material/colors";
 
 export default function Footer() {
     return (
@@ -7,7 +8,7 @@ export default function Footer() {
             sx={{
                 py: 3,
                 px: 2,
-                backgroundColor: "#f5f5f5",
+                backgroundColor: green[100],
                 textAlign: "center",
             }}
         >

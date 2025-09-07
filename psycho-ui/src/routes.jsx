@@ -13,6 +13,7 @@ import ApplicationStatus from "./pages/ApplicationStatus";
 import ManagementLayout from "./layouts/ManagementLayout";
 import Dashboard from "./pages/DashboardPages/Dashboard";
 import ApplicationsManager from "./pages/DashboardPages/ApplicationsManager";
+import ApplicationTrackerForm from "./components/ApplicationTrackerForm";
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -23,7 +24,7 @@ const router = createBrowserRouter(
                 <Route path="home" element={<Home />} />
                 <Route path="applications" element={<Applications />}>
                     <Route path="apply" element={<ApplicationForm />} />
-                    <Route path="track" element={<ApplicationStatus />} />
+                    <Route path="track" element={<ApplicationTrackerForm />} />
                 </Route>
                 <Route path="test" element={<Navigation />} />
                 <Route path="*" element={<ErrorNotFound />} />

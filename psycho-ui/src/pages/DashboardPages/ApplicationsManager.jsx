@@ -406,15 +406,30 @@ const ApplicationsManager = () => {
 
     return (
         <ApplicationDataGridContext.Provider value={providerValue}>
-            {" "}
-            {/* Better use a context than attach custom field to apiRef*/}
             <ApplicationSearchAndFilterBar register={register} watch={watch} />
-            <Box sx={{ width: "100%", height: "100%" }}>
+            <Box
+                sx={{
+                    width: "100%",
+                    height: "100%",
+                }}
+            >
                 <StripedDataGrid
                     apiRef={apiRef} // If custom props are attached to apiRef, need to set this in order to get them elsewhere; also
                     // this is required to be able to use apiRef passed elsewhere as prop from slotProps.
                     // Docs : When using the API object outside the Data Grid components, you need to initialize it
                     // using the useGridApiRef hook. You can then pass it to the Data Grid's apiRef prop:
+                    sx={{
+                        "& .MuiDataGrid-columnHeader": {
+                            backgroundColor: lightBlue[50],
+                        },
+                        "& .MuiDataGrid-columnHeader .MuiDataGrid-sortButton": {
+                            display: "none",
+                        },
+                        "& .MuiDataGrid-columnHeaderTitleContainerContent": {
+                            // To show the badge entirely
+                            overflow: "visible",
+                        },
+                    }}
                     columns={columns}
                     rows={data?.results ?? []}
                     getRowId={(row) => row.application_id}
@@ -453,18 +468,6 @@ const ApplicationsManager = () => {
                             "odd"
                         :   "even"
                     }
-                    sx={{
-                        "& .MuiDataGrid-columnHeader": {
-                            backgroundColor: lightBlue[50],
-                        },
-                        "& .MuiDataGrid-columnHeader .MuiDataGrid-sortButton": {
-                            display: "none",
-                        },
-                        "& .MuiDataGrid-columnHeaderTitleContainerContent": {
-                            // To show the badge entirely
-                            overflow: "visible",
-                        },
-                    }}
                     paginationMode="server"
                     paginationModel={paginationModel}
                     onPaginationModelChange={setPaginationModel}

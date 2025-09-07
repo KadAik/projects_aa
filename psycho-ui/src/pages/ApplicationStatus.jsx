@@ -7,78 +7,122 @@ import {
     StepLabel,
     Chip,
     Stack,
+    Skeleton,
 } from "@mui/material";
 import ApplicationStatusTimeline from "../components/ApplicationStatusTimeline";
+import { useApplications } from "../assets/PsychoAPI/requests";
+import { useEffect, useState } from "react";
 
-const statusSteps = [
-    { label: "Reçu", date: "01/01/2023", completed: true },
-    { label: "En cours de traitement", date: "", completed: true },
-    { label: "Accepté", date: "01/02/2023", completed: false },
-];
+const statusColorKey = {
+    PENDING: "warning",
+    INCOMPLETE: "warning",
+    ACCEPTED: "success",
+    REJECTED: "error",
+};
 
-const ApplicationStatus = () => {
-    const activeStep = statusSteps.findIndex((step) => !step.completed) - 1;
-    const currentStatus = statusSteps[activeStep + 1]?.label || "Complété";
+const statusMap = {
+    Pending: {
+        label: "En cours de traitement",
+        date: "05/01/2023",
+        color: statusColorKey["PENDING"],
+    },
+    Incomplete: {
+        label: "Incomplet",
+        date: "10/01/2023",
+        color: statusColorKey["INCOMPLETE"],
+    },
+    Accepted: {
+        label: "Accepté",
+        date: "",
+        color: statusColorKey["ACCEPTED"],
+    },
+    Rejected: {
+        label: "Rejeté",
+        date: "",
+        color: statusColorKey["REJECTED"],
+    },
+};
 
-    return (
-        <Box sx={{ maxWidth: 800, mx: "auto", p: 2 }}>
-            {/* Status Summary Card */}
-            <Paper sx={{ p: 3, mb: 3, borderRadius: 2 }}>
-                <Box
-                    sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        mb: 2,
-                    }}
-                >
-                    <Typography variant="h6">
-                        Statut de la candidature
-                    </Typography>
-                    <Chip
-                        label={currentStatus}
-                        color={
-                            currentStatus === "Accepté"
-                                ? "success"
-                                : currentStatus === "En cours de traitement"
-                                ? "warning"
-                                : "info"
+const ApplicationStatus = ({ isPending, data }) => {
+    return isPending ?
+            <Box>Chargement des données...</Box>
+        :   <Box sx={{ maxWidth: 800, mx: "auto", p: { xs: 1, sm: 2 } }}>
+                {/* Status Summary Card */}
+                <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 3, borderRadius: 2 }}>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: { xs: "column", sm: "row" },
+                            justifyContent: "space-between",
+                            alignItems: { xs: "flex-start", sm: "center" },
+                            gap: 1,
+                            mb: 2,
+                        }}
+                    >
+                        <Typography variant="h6">
+                            Statut de la candidature
+                        </Typography>
+                        {isPending ?
+                            <Skeleton variant="text" />
+                        :   <Chip
+                                label={statusMap[data.status].label}
+                                color={statusMap[data.status].color}
+                            />
                         }
-                    />
-                </Box>
+                    </Box>
 
-                <Stack direction="row" spacing={3}>
-                    <Box>
-                        <Typography variant="body2" color="text.secondary">
-                            Identité Candidat
-                        </Typography>
-                        <Typography fontWeight="medium" color="primary.main">
-                            John Doe
-                        </Typography>
-                    </Box>
-                    <Box>
-                        <Typography variant="body2" color="text.secondary">
-                            Référence de dossier
-                        </Typography>
-                        <Typography fontWeight="medium" color="primary.main">
-                            123456789
-                        </Typography>
-                    </Box>
-                    <Box>
-                        <Typography variant="body2" color="text.secondary">
-                            Dernière mise à jour
-                        </Typography>
-                        <Typography fontWeight="medium" color="primary.main">
-                            15/01/2023
-                        </Typography>
-                    </Box>
-                </Stack>
-            </Paper>
+                    <Stack
+                        direction={{ xs: "column", sm: "row" }}
+                        spacing={3}
+                        sx={{ textAlign: { xs: "left", sm: "center" } }}
+                    >
+                        <Box>
+                            <Typography variant="body2" color="text.secondary">
+                                Identité du candidat
+                            </Typography>
+                            <Typography
+                                fontWeight="medium"
+                                color="primary.main"
+                            >
+                                {`${data.applicant.first_name} ${data.applicant.last_name}`}
+                            </Typography>
+                        </Box>
+                        <Box>
+                            <Typography variant="body2" color="text.secondary">
+                                Référence de dossier
+                            </Typography>
+                            <Typography
+                                fontWeight="medium"
+                                color="primary.main"
+                            >
+                                {data.tracking_id}
+                            </Typography>
+                        </Box>
+                        <Box>
+                            <Typography variant="body2" color="text.secondary">
+                                Dernière mise à jour
+                            </Typography>
+                            <Typography
+                                fontWeight="medium"
+                                color="primary.main"
+                                textAlign={{ xs: "left", sm: "center" }}
+                            >
+                                {data.date_updated ?
+                                    new Date(data.date_updated).toLocaleString()
+                                :   "..."}
+                            </Typography>
+                        </Box>
+                    </Stack>
+                </Paper>
 
-            {/* Status Timeline */}
-            <ApplicationStatusTimeline />
-        </Box>
-    );
+                {/* Status Timeline */}
+                <ApplicationStatusTimeline
+                    statusMap={statusMap}
+                    dateUpdated={data.date_updated}
+                    dateSubmitted={data.date_submitted}
+                    status={data.status}
+                />
+            </Box>;
 };
 
 export default ApplicationStatus;

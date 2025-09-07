@@ -77,7 +77,8 @@ class ApplicationViewSet(viewsets.ViewSet):
         List all applications.
         """
         tracking_id = request.query_params.get("tracking_id")
-        if tracking_id:  # We interrupt needless database hit soon
+        print("Tracking_id is : ", tracking_id)
+        if tracking_id is not None and tracking_id.strip() != '':
             application = get_object_or_404(Application, tracking_id=tracking_id)
             serialized_item = self.serializer_class(instance=application, context={'request': request})
             return Response(serialized_item.data, status=drf_status.HTTP_200_OK)

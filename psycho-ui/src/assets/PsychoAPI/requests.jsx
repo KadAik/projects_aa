@@ -8,12 +8,11 @@ import { fetchData, postData } from "../../utils/crud";
 
 const ENDPOINT = "http://127.0.0.1:8000/psycho/api/applications";
 
-export function useApplications(queryParams = {}) {
-    // This hook is used to retrieve all applications
-
+export function useApplications(queryParams = {}, options = {}) {
     const applicationQuery = useQuery({
         queryKey: ["applications", JSON.stringify(queryParams)],
         queryFn: () => fetchData(ENDPOINT, queryParams),
+        ...options,
     });
     return applicationQuery;
 }
