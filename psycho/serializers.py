@@ -254,6 +254,13 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
         """
         Customize the internal representation by handling unexpected fields.
         """
+
+        # Phone field preprocessing
+        print("The phone number is : ", data.get('phone'))
+        if data.get('phone') and not data['phone'].startswith('+229'):
+            data['phone'] = '+229' + data.get('phone')
+        print("After preprocessing, the phone number is : ", data.get('phone'))
+
         university_data = data.get("university", None)
         university_average = data.get('university_average', None)
         university_field_of_study = data.get('university_field_of_study', None)
@@ -343,7 +350,9 @@ class ApplicationSerializer(serializers.ModelSerializer):
         read_only=True,
     )
     # applicant_profile_data = ApplicantProfileSerializer(write_only=True)
-    applicant = ApplicantProfileSerializer(read_only=True)  # set to writable if you want to use the drf browsable API
+    applicant = ApplicantProfileSerializer()  # Default to read_only but switch to writable as create is overwritten.
+
+    # Need to be writable for further nested applicant field handling.
 
     class Meta:
         model = Application
@@ -375,6 +384,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
 
             # Here we delegate the applicant profile creation to the nested serializer, not the Model manager
             if applicant_profile_data:
+                # Since applicant is a writable serializer on ApplicationSerialize, applicant is expected by default
                 applicant_serializer = ApplicantProfileSerializer(data=applicant_profile_data)
                 applicant_serializer.is_valid(raise_exception=True)
                 applicant_instance = applicant_serializer.save()

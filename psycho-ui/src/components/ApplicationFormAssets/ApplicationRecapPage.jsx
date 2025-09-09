@@ -64,9 +64,9 @@ export default function ApplicationRecapPage() {
                             }}
                         >
                             <strong>Sexe:</strong>{" "}
-                            {personalHistory.gender === "M"
-                                ? "Masculin"
-                                : "Féminin"}
+                            {personalHistory.gender === "M" ?
+                                "Masculin"
+                            :   "Féminin"}
                         </Typography>
                     </ListItem>
                     <ListItem sx={{ px: 0 }}>
@@ -88,7 +88,8 @@ export default function ApplicationRecapPage() {
                                 borderRadius: 1,
                             }}
                         >
-                            <strong>Téléphone:</strong> {personalHistory.phone}
+                            <strong>Téléphone:</strong>{" "}
+                            {"+229 " + personalHistory.phone}
                         </Typography>
                     </ListItem>
                 </List>

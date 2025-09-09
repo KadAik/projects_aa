@@ -17,7 +17,7 @@ const url =
     "http://127.0.0.1:8000/psycho/api/applications/49f23ac7-b2b7-4d43-8bee-15088d9a818d/";
 
 const ApplicantProfileEditForm = ({ onSubmit }) => {
-    let data = {};
+    let applicantData = {};
     const application = useQuery({
         queryKey: ["applications"],
         queryFn: () => fetchData(url),
