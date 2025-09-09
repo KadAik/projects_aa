@@ -10,6 +10,7 @@ django-rest-framework = "*"
 django-debug-toolbar = "*"
 django-cors-headers = "*"
 black = "*"
+django-simple-history = "*"
 
 [dev-packages]
 

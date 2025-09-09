@@ -17,7 +17,7 @@ const genderOptions = [
     { value: "F", label: "Féminin" },
 ];
 
-export default function PersonalHistoryContent() {
+export default function PersonalHistoryContent({ displayNotice = true }) {
     const {
         register,
         watch,
@@ -28,10 +28,12 @@ export default function PersonalHistoryContent() {
 
     return (
         <>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-                Required fields are followed by{" "}
-                <span aria-label="required">*</span>
-            </Typography>
+            {displayNotice && (
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                    Required fields are followed by{" "}
+                    <span aria-label="required">*</span>
+                </Typography>
+            )}
 
             <Grid
                 container

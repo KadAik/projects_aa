@@ -19,7 +19,11 @@ const degreeOptions = [
     { value: "PHD", label: "Doctorat" },
 ];
 
-export default function EducationalBackgroundContent() {
+export default function EducationalBackgroundContent({
+    displayHighSchoolDetails = true,
+    displayUniversityDetails = true,
+    displayNotice = true,
+}) {
     const {
         register,
         watch,
@@ -30,10 +34,12 @@ export default function EducationalBackgroundContent() {
 
     return (
         <>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-                Required fields are followed by{" "}
-                <span aria-label="required">*</span>
-            </Typography>
+            {displayNotice && (
+                <Typography variant="body2" sx={{ mb: 2 }}>
+                    Required fields are followed by{" "}
+                    <span aria-label="required">*</span>
+                </Typography>
+            )}
 
             <Grid
                 container
@@ -66,14 +72,15 @@ export default function EducationalBackgroundContent() {
             </Grid>
 
             {/* High School Section */}
-            <HighSchoolDetails />
+            {displayHighSchoolDetails && <HighSchoolDetails />}
 
             {/* University Degrees */}
-            {(degree === "BACHELOR" ||
-                degree === "MASTER" ||
-                degree === "PHD") && (
-                <UniversityDegreeDetails degree={degree} />
-            )}
+            {displayUniversityDetails &&
+                (degree === "BACHELOR" ||
+                    degree === "MASTER" ||
+                    degree === "PHD") && (
+                    <UniversityDegreeDetails degree={degree} />
+                )}
         </>
     );
 }

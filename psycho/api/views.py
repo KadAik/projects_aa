@@ -1,10 +1,10 @@
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import (
     generics,
     viewsets,
 )
 from rest_framework import status as drf_status
-from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -131,12 +131,6 @@ class ApplicationViewSet(viewsets.ViewSet):
         serializer = self.serializer_class(instance=application, context={'request': request})
         return Response(serializer.data, status=drf_status.HTTP_200_OK)
 
-    @action(detail=True, methods=['get'])
-    def retrieve_by_tracking_id(self, request, tracking_id):
-        application = get_object_or_404(Application, tracking_id=tracking_id)
-        serializer = self.serializer_class(instance=application, context={'request': request})
-        return Response(serializer.data, status=drf_status.HTTP_200_OK)
-
     def create(self, request):
         """
         Create a new application.
@@ -146,3 +140,34 @@ class ApplicationViewSet(viewsets.ViewSet):
         serializer.save()
 
         return Response(serializer.data, status=drf_status.HTTP_201_CREATED)
+
+    def partial_update(self, request, pk):
+        """
+        Partially update an existing application.
+        """
+        instance = get_object_or_404(Application, application_id=pk)
+        data = request.data.copy()
+
+        # We check if the nested field applicant is to be updated
+        applicant_data = data.pop('applicant', None)
+
+        with transaction.atomic():
+            if applicant_data:
+                applicant_instance = instance.applicant
+                applicant_serializer = ApplicantProfileSerializer(
+                    applicant_instance,
+                    data=applicant_data,
+                    partial=True,
+                    context={'request': request}
+                )
+
+                applicant_serializer.is_valid(raise_exception=True)
+
+                applicant_serializer.save()
+
+            serializer = self.serializer_class(instance, data=data, partial=True, context={'request': request})
+            serializer.is_valid(raise_exception=True)
+            
+            serializer.save()
+
+        return Response(serializer.data, status=drf_status.HTTP_200_OK)
