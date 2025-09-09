@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     # Django REST framework
     'rest_framework',
     'debug_toolbar',  # For debugging purposes
+    'simple_history',
 ]
 
 MIDDLEWARE = [
@@ -55,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 CORS_ALLOWED_ORIGINS = [

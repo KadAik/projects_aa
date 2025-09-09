@@ -254,13 +254,12 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
         """
         Customize the internal representation by handling unexpected fields.
         """
-        university_data = data.pop("university", None)
+        university_data = data.get("university", None)
         university_average = data.get('university_average', None)
         university_field_of_study = data.get('university_field_of_study', None)
         if university_data:
             university_average = university_data.pop('university_average', None)
             university_field_of_study = university_data.pop('university_field_of_study', None)
-            data['university'] = university_data
             # Beware, as create is overwritten, university is not readonly anymore and the deserialization of university
             # field is handle over to UniversitySerializer to_internal_value. So enforce with read_only=True
         intern = super().to_internal_value(data)
@@ -322,41 +321,17 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
         """
         Update an existing applicant profile, and optionally update the user account if needed.
         """
+        # In case a profile upgrade is asked.
         create_user_account = validated_data.pop('create_user_account', None)
         username = validated_data.pop('username', None)
         password = validated_data.pop('password', None)
-
-        first_name = validated_data.get('first_name', None)
-        last_name = validated_data.get('last_name', None)
-        gender = validated_data.get('gender', None)
-        date_of_birth = validated_data.get('date_of_birth', None)
-        new_email = validated_data.get('email', None)
-        phone = validated_data.get('phone', None)
-
-        old_mail = instance.email
-
-        if new_email and new_email != old_mail and ApplicantProfile.objects.filter(email=new_email).exists():
-            raise serializers.ValidationError({"email": "This email is already taken."})
-        else:
-            instance.email = new_email
-
-        if first_name is not None:
-            instance.first_name = first_name
-        if last_name is not None:
-            instance.last_name = last_name
-        if gender is not None:
-            instance.gender = gender
-        if date_of_birth is not None:
-            instance.date_of_birth = date_of_birth
-        if phone is not None:
-            instance.phone = phone
-
-        instance.save()
+        print("receive to update : ", validated_data)
+        updated = super().update(instance, validated_data)
 
         if create_user_account:
             self.create_usr_account(instance, username, password)
 
-        return instance
+        return updated
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
@@ -368,7 +343,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
         read_only=True,
     )
     # applicant_profile_data = ApplicantProfileSerializer(write_only=True)
-    applicant = ApplicantProfileSerializer()  # Should be read-only ; but is left as this to use the drf browsable API
+    applicant = ApplicantProfileSerializer(read_only=True)  # set to writable if you want to use the drf browsable API
 
     class Meta:
         model = Application
@@ -384,7 +359,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
 
         read_only_fields = [
             'application_id',
-            'tracking_id',
+            # 'tracking_id',
             'date_submitted',
             'date_updated',
         ]

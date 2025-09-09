@@ -3,10 +3,12 @@ import uuid
 
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import Group, Permission
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models, IntegrityError
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
+from simple_history.models import HistoricalRecords
 
 
 class NormalizeFieldsMixin:
@@ -146,7 +148,7 @@ class ApplicantProfile(models.Model, NormalizeFieldsMixin):
                                     help_text="Unique identifier for the applicant")
     user = models.OneToOneField(User, null=True, blank=True, on_delete=models.SET_NULL,
                                 related_name='applicant_profile')
-
+    history = HistoricalRecords()
     # Personal history
     first_name = models.CharField("applicant first name", max_length=100, help_text="ApplicantProfile's first name")
     last_name = models.CharField("applicant last name", max_length=100, help_text="ApplicantProfile's last name")
@@ -177,7 +179,7 @@ class ApplicantProfile(models.Model, NormalizeFieldsMixin):
         BAC_E = 'E', _('BAC E')
         BAC_F = 'F', _('BAC F')
 
-    degree = models.CharField("The applicant highest study degree", choices=Degree.choices)
+    degree = models.CharField("The applicant highest study degree", max_length=20, choices=Degree.choices)
     baccalaureate_series = models.CharField("The type of baccalaureate", max_length=2,
                                             choices=BaccalaureateSeries.choices)
     baccalaureate_average = models.FloatField("Average at baccalaureate exam",
@@ -186,7 +188,7 @@ class ApplicantProfile(models.Model, NormalizeFieldsMixin):
     baccalaureate_session = models.DateField("Baccalaureate session")
 
     university = models.ForeignKey('University', on_delete=models.SET_NULL, blank=True, null=True,
-                                   related_name='Graduate')
+                                   related_name='graduates')
     university_field_of_study = models.CharField("Study field", max_length=99, null=True, blank=True)
     university_average = models.FloatField("Average for the university degree", blank=True, null=True,
                                            validators=[MinValueValidator(0.0), MaxValueValidator(20.0)])
@@ -205,13 +207,13 @@ class ApplicantProfile(models.Model, NormalizeFieldsMixin):
         if self.user:
             raise ValueError("ApplicantProfile is already linked to a user.")
         if not username:
-            raise ValueError("Username is required.")
+            raise ValueError("Username is required to create a user account to an applicant.")
         if not raw_password:
-            raise ValueError("Password is required.")
+            raise ValueError("Password is required to create a user account to an applicant.")
         if User.objects.filter(username=username).exists():
-            raise ValueError("Username is already taken.")
+            raise ValidationError("Username is already taken.")
         if User.objects.filter(email=self.email).exists():
-            raise ValueError("Email is already taken.")
+            raise ValidationError("Email is already taken.")
 
         user = User.objects.create_user(
             username=username,
@@ -228,7 +230,7 @@ class ApplicantProfile(models.Model, NormalizeFieldsMixin):
         self.save()
 
     class Meta:
-        ordering = ['date_registered']
+        ordering = ['-date_registered']
 
         constraints = [
             models.UniqueConstraint(
@@ -338,7 +340,13 @@ class Application(models.Model):
     date_submitted = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
     # The following field is auto computed from the lastname, the date of birth and random three digits.
-    tracking_id = models.CharField("A human-readable reference to track the application", max_length=14)
+    tracking_id = models.CharField("A human-readable reference to track the application", max_length=14, unique=True,
+                                   null=True, blank=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # On instance load track initial status value
+        self._initial_status = self.status
 
     class ApplicationStatus(models.TextChoices):
         PENDING = 'Pending', _('Pending')
@@ -400,23 +408,53 @@ class Application(models.Model):
 
     def save(self, *args, **kwargs):
         """
-        On creation, optionally create an ApplicantProfile only if one hasn't been provided.
-        In fact, one may have already been associated with the ApplicantProfileSerializer
+        On creation, create an ApplicantProfile if one hasn't been provided and
+        generate a tracking ID. On update, log status changes to the history.
+
+        # Attach _changed_by to application and _status_change_note in service code for handler to correctly
+        # track status changes
         """
-        if self._state.adding:
+        if self._state.adding:  # A new application is being created.
             if not self.applicant:
                 applicant_profile_data = kwargs.pop('applicant_profile_data', None)
                 if not applicant_profile_data:
-                    raise ValueError("Applicant profile data is required for creating a new application.")
+                    raise ValueError(
+                        "The applicant details data is required to create a new application. Provide them via a dict "
+                        "applicant_profile_data")
                 if not isinstance(applicant_profile_data, dict):
-                    raise ValueError("Applicant profile data must be a dictionary.")
+                    raise TypeError("Applicant profile data must be a dictionary.")
                 self.applicant = self.create_applicant_profile(applicant_profile_data)
 
             # Generate tracking ID (based on existing applicant)
             if not self.tracking_id and self.applicant:
-                self.tracking_id = f"{self.applicant.last_name[:2]}-{self.applicant.date_of_birth.strftime('%d%m%y')}-{random.randint(100, 999)}"
-
+                while True:  # To enforce the uniqueness of the tracking_id
+                    new_id = f"{self.applicant.last_name[:2]}-{self.applicant.date_of_birth.strftime('%d%m%y')}-{random.randint(100, 999)}"
+                    if not Application.objects.filter(tracking_id=new_id).exists():
+                        self.tracking_id = new_id
+                        break
         super().save(*args, **kwargs)
+
+
+class ApplicationStatusHistory(models.Model):
+    """
+    A model to track a status changes for an application.
+    """
+    application = models.ForeignKey(Application, on_delete=models.CASCADE, related_name='status_history')
+
+    old_status = models.CharField("Status before change", max_length=20, choices=Application.ApplicationStatus.choices,
+                                  null=True, blank=True)
+    new_status = models.CharField("Status after change", max_length=20, choices=Application.ApplicationStatus.choices)
+    changed_by = models.ForeignKey(User, null=True, blank=True, help_text="User who made the change",
+                                   on_delete=models.SET_NULL)
+    date_changed = models.DateTimeField(auto_now_add=True)
+    note = models.TextField(null=True, blank=True, help_text="Optional comment about the change")
+
+    def __str__(self):
+        return f"{self.application.tracking_id}: {self.old_status} → {self.new_status} by {self.changed_by}"
+
+    class Meta:
+        ordering = ['-date_changed']
+        verbose_name_plural = "Application status histories"
 
 
 class Review(models.Model):

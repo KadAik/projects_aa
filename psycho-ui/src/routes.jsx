@@ -14,6 +14,7 @@ import ManagementLayout from "./layouts/ManagementLayout";
 import Dashboard from "./pages/DashboardPages/Dashboard";
 import ApplicationsManager from "./pages/DashboardPages/ApplicationsManager";
 import ApplicationTrackerForm from "./components/ApplicationTrackerForm";
+import ApplicantProfileEditForm from "./pages/DashboardPages/ApplicantProfileEditForm";
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -35,6 +36,7 @@ const router = createBrowserRouter(
                 <Route index element={<Dashboard />} />
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="applications" element={<ApplicationsManager />} />
+                <Route path="edit" element={<ApplicantProfileEditForm />} />
             </Route>
         </>
     )
