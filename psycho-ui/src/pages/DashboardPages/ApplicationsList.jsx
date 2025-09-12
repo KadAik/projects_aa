@@ -32,7 +32,7 @@ import {
 } from "../../contexts/applicationDataGridContext";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import GavelOutlinedIcon from "@mui/icons-material/GavelOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 
@@ -211,8 +211,6 @@ const ApplicationsList = () => {
         defaultValues: filtersInitialState,
     });
 
-    const navigate = useNavigate();
-
     const apiRef = useGridApiRef();
 
     const [sortModel, setSortModel] = useState({}); // sortModel should be an array of objects, but using {}
@@ -333,20 +331,6 @@ const ApplicationsList = () => {
                 setSortHistory([field]);
             }
         }
-    };
-
-    const onApplicantProfileEdit = (e, applicantProfile) => {
-        console.log("Edit application", applicantProfile);
-        navigate(`/applicants/${applicantProfile?.applicant_id}`, {
-            state: { applicantData: applicantProfile },
-        });
-    };
-
-    const onApplicationRead = (e, application) => {
-        console.log("Read application", application);
-        navigate(`/applications/${application?.application_id}`, {
-            state: { applicationData: application },
-        });
     };
 
     const providerValue = useMemo(

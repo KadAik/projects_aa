@@ -2,7 +2,6 @@ import { useReducer, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
 
 import ApplicationFormSection from "./ApplicationFormAssets/ApplicationFormSection.jsx";
 import ApplicationConfirmationPage from "./ApplicationFormAssets/ApplicationConfirmationPage.jsx";
@@ -12,12 +11,12 @@ import applicationFormReducer from "./reducers/applicationFormReducer.js";
 import { initialApplicationFormData } from "./ApplicationFormAssets/aplicationFormConfig.jsx";
 import { applicationFormSections as sections } from "./ApplicationFormAssets/aplicationFormConfig.jsx";
 
-import { objectFromCamelToSnakeCase } from "../utils/utils.js";
 import { schema } from "./ApplicationFormAssets/validationRules.js";
 import { handleFailedApplicationSubmission } from "./ApplicationFormAssets/utils.js";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import ApplicationFormStepper from "./ApplicationFormAssets/ApplicationFormStepper.jsx";
 import { postData as postApplication } from "../utils/crud.js";
+import { mapFormDataToApi } from "../shared/psychoApi/utils.js";
 
 const ApplicationForm = () => {
     const numberOfSections = Object.keys(sections).length;
@@ -40,20 +39,7 @@ const ApplicationForm = () => {
         defaultValues: { ...initialApplicationFormData },
     });
 
-    const { handleSubmit, getValues, setError, setFocus } = formMethods;
-
-    const dataToPost = () => {
-        const { personalHistory, degree, highSchool, university } = getValues();
-        const applicantInfos = {
-            ...objectFromCamelToSnakeCase(personalHistory),
-            degree,
-            ...objectFromCamelToSnakeCase(highSchool),
-            university: objectFromCamelToSnakeCase(university),
-        };
-        return {
-            applicant: applicantInfos,
-        };
-    };
+    const { handleSubmit, setError, setFocus } = formMethods;
 
     const applicationMutation = useMutation({
         mutationFn: (data) =>
@@ -81,7 +67,13 @@ const ApplicationForm = () => {
 
     const onSubmit = async (data) => {
         console.log("Form data : ", data);
-        applicationMutation.mutate(dataToPost());
+        // Reformat dates to YYYY-MM-DD before sending to the server
+        data = mapFormDataToApi(data);
+        data.date_of_birth = data.date_of_birth.toISOString().substring(0, 10);
+        data.baccalaureate_session =
+            data.baccalaureate_session.toLocaleDateString("en-CA");
+        applicationMutation.mutate({ applicant: data });
+        console.log("Submitted data: ", data);
     };
 
     const onError = (e) => {

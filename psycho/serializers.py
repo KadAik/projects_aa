@@ -210,7 +210,7 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
     # to_representation methods should handle this case accordingly.
     # Updated, providing a default value sorts the traversal on empty object issue.
     username = serializers.CharField(source='user.username', default=None, read_only=True)
-    university = UniversitySerializer(read_only=True)
+    university = UniversitySerializer()  # Should be writable for validated_data to keep it; then we handle the creation.
 
     class Meta:
         model = ApplicantProfile

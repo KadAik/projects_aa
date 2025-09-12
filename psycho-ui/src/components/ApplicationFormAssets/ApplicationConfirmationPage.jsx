@@ -90,7 +90,7 @@ export default function ApplicationConfirmationPage({ email, trackingNumber }) {
                     <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                         <Button
                             variant="contained"
-                            onClick={() => navigate("applications/track")}
+                            onClick={() => navigate("/applications/track")}
                             fullWidth
                             sx={{
                                 py: 1.5,
