@@ -161,12 +161,6 @@ class UniversitySerializer(serializers.ModelSerializer):
         model = University
         fields = ["name"]
 
-    def to_internal_value(self, data):
-        print("Calling to university repr with : ", data)
-        intern = super().to_internal_value(data)
-        print("University repr passed")
-        return intern
-
     def create(self, validated_data):
         """
         If the university already exists, return it.
@@ -322,6 +316,7 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
                 university_serializer.is_valid(raise_exception=True)
                 university_instance = university_serializer.save()
                 applicant_profile.university = university_instance
+                applicant_profile.save(update_fields=['university'])
 
             # If user account creation is requested
             if create_user_account:

@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import { Box, Typography, Paper, Button, Stack, Divider } from "@mui/material";
 
@@ -90,7 +90,9 @@ export default function ApplicationConfirmationPage({ email, trackingNumber }) {
                     <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                         <Button
                             variant="contained"
-                            onClick={() => navigate("/applications/track")}
+                            component={Link}
+                            to="/applications/track"
+                            state={{ tracking_id: trackingNumber }}
                             fullWidth
                             sx={{
                                 py: 1.5,

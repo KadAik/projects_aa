@@ -16,12 +16,13 @@ import { useForm } from "react-hook-form";
 import { useApplications } from "../assets/PsychoAPI/requests";
 import ApplicationStatus from "../pages/ApplicationStatus";
 import ErrorOutlinedIcon from "@mui/icons-material/ErrorOutlined";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 
 const ApplicationTrackerForm = () => {
     const [dialogOpen, setDialogOpen] = useState(false);
-
+    const location = useLocation();
     const [searchParams, setSearchParams] = useSearchParams();
+    const initialTrackingId = location.state?.tracking_id || "";
 
     const {
         register,
@@ -30,7 +31,7 @@ const ApplicationTrackerForm = () => {
         watch,
         getValues,
         formState: { errors },
-    } = useForm({ defaultValues: { tracking_id: "" } });
+    } = useForm({ defaultValues: { tracking_id: initialTrackingId } });
 
     const { data, refetch, isError, isPending, isFetching } = useApplications(
         { tracking_id: getValues("tracking_id") },
