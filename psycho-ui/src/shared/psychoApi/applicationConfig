@@ -1,0 +1,7 @@
+export const applicationStatus = {
+    Pending: { label: "En attente", color: "warning" },
+    UnderReview: { label: "En cours d'examen", color: "info" },
+    Accepted: { label: "Acceptée", color: "success" },
+    Rejected: { label: "Rejetée", color: "error" },
+    Incomplete: { label: "Incomplète", color: "error" },
+};

@@ -5,7 +5,7 @@ from .models import (
     User,
     AdminProfile,
     ApplicantProfile,
-    Application, University,
+    Application, University, ApplicationStatusHistory
 )
 
 
@@ -179,6 +179,12 @@ class UniversitySerializer(serializers.ModelSerializer):
         return university
 
 
+class ApplicationStatusHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApplicationStatusHistory
+        fields = '__all__'
+
+
 class ApplicantProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for the Applicant model.
@@ -256,11 +262,10 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
         """
 
         # Phone field preprocessing
-        print("The phone number is : ", data.get('phone'))
         if data.get('phone') and not data['phone'].startswith('+229'):
             data['phone'] = '+229' + data.get('phone')
-        print("After preprocessing, the phone number is : ", data.get('phone'))
 
+        # University field processing
         university_data = data.get("university", None)
         university_average = data.get('university_average', None)
         university_field_of_study = data.get('university_field_of_study', None)
@@ -354,6 +359,8 @@ class ApplicationSerializer(serializers.ModelSerializer):
 
     # Need to be writable for further nested applicant field handling.
 
+    status_history_ids = serializers.PrimaryKeyRelatedField(source='status_history', many=True, read_only=True)
+
     class Meta:
         model = Application
         fields = [
@@ -364,6 +371,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
             'status',
             'date_submitted',
             'date_updated',
+            'status_history_ids',
         ]
 
         read_only_fields = [

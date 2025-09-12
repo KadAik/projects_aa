@@ -15,6 +15,10 @@ import Dashboard from "./pages/DashboardPages/Dashboard";
 import ApplicationsManager from "./pages/DashboardPages/ApplicationsManager";
 import ApplicationTrackerForm from "./components/ApplicationTrackerForm";
 import ApplicantProfileEditForm from "./pages/DashboardPages/ApplicantProfileEditForm";
+import ApplicationsList from "./pages/DashboardPages/ApplicationsList";
+import ApplicantsManager from "./pages/DashboardPages/ApplicantsManager";
+import ApplicationDetails from "./pages/DashboardPages/ApplicationDetails";
+import ApplicationStatusHistory from "./pages/DashboardPages/ApplicationStatusHistory";
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -35,8 +39,21 @@ const router = createBrowserRouter(
             <Route path="/manage" element={<ManagementLayout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="dashboard" element={<Dashboard />} />
-                <Route path="applications" element={<ApplicationsManager />} />
-                <Route path="edit" element={<ApplicantProfileEditForm />} />
+                <Route path="applicants" element={<ApplicantsManager />}>
+                    {/* <Route index element={<ApplicantsList />} /> */}
+                    <Route
+                        path=":applicantId"
+                        element={<ApplicantProfileEditForm />}
+                    />
+                </Route>
+                <Route path="applications" element={<ApplicationsManager />}>
+                    <Route index element={<ApplicationsList />} />
+                    <Route
+                        path=":applicationId"
+                        element={<ApplicationDetails />}
+                    />
+                </Route>
+                <Route path="edit" element={<ApplicationStatusHistory />} />
             </Route>
         </>
     )

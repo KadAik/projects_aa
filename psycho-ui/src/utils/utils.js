@@ -17,9 +17,10 @@ export function camelToSnakeCase(str) {
         return str;
     }
     for (let char of str) {
-        result = isLowerCase(char)
-            ? result.concat(char)
-            : result.concat(`_${char.toLowerCase()}`);
+        result =
+            isLowerCase(char) ?
+                result.concat(char)
+            :   result.concat(`_${char.toLowerCase()}`);
     }
     return result;
 }
@@ -61,3 +62,13 @@ export function objectFromSnakeToCamelCase(obj) {
     }
     return obj;
 }
+
+export const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleString("fr-FR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+};

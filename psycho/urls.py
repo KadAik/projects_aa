@@ -6,7 +6,7 @@ from rest_framework.routers import DefaultRouter
 app_name = 'psycho'
 
 urlpatterns = [
-    
+
 ]
 
 # User URLs
@@ -17,16 +17,22 @@ urlpatterns += [
 # AdminProfile URLs
 urlpatterns += [
     path('api/adminprofiles/', api_views.AdminProfileListCreateView.as_view(), name='adminprofile-list'),
-    path('api/adminprofiles/<uuid:pk>/', api_views.AdminProfileRetrieveUpdateDestroyView.as_view(), name='adminprofile-detail'),
+    path('api/adminprofiles/<uuid:pk>/', api_views.AdminProfileRetrieveUpdateDestroyView.as_view(),
+         name='adminprofile-detail'),
 ]
 
 # ApplicantProfile URLs
 urlpatterns += [
     path('api/applicants/', api_views.ApplicantProfileListCreateView.as_view(), name='applicant-list'),
-    path('api/applicant/<uuid:pk>/', api_views.ApplicantProfileRetrieveUpdateDestroyView.as_view(), name='applicant-detail'),
+    path('api/applicant/<uuid:pk>/', api_views.ApplicantProfileRetrieveUpdateDestroyView.as_view(),
+         name='applicant-detail'),
 ]
 
 # Application URLs
 router = DefaultRouter()
 router.register(r'api/applications', api_views.ApplicationViewSet, basename='application')
 urlpatterns += router.urls
+urlpatterns += [
+    path('api/applications/<uuid:pk>/status_history', api_views.application_status_history,
+         name='application-status-history')
+]

@@ -1,3 +1,4 @@
+import React from "react";
 import { useFormContext } from "react-hook-form";
 import {
     Box,
@@ -6,6 +7,7 @@ import {
     Grid,
     InputLabel,
     MenuItem,
+    Paper,
     Select,
     TextField,
     Typography,
@@ -21,32 +23,32 @@ export default function HighSchoolDetails() {
     const getError = (field) => errors.highSchool?.[field]?.message;
 
     return (
-        <Box
-            sx={{
-                mt: 3,
-                width: "100%",
-                border: "1px solid #ccc",
-                p: 2,
-                borderRadius: 1,
-            }}
-        >
-            <Grid container spacing={2} sx={{ width: "100%" }}>
-                <Grid size={{ xs: 12, md: 6 }}>
-                    <Typography
-                        variant="h6"
-                        gutterBottom
-                        sx={{
-                            fontSize: "1.2rem",
-                            borderBottom: "1px solid #ccc",
-                            pb: 1,
-                        }}
-                    >
-                        Informations sur le baccalauréat
-                    </Typography>
-                </Grid>
-
+        <>
+            <Typography
+                variant="h6"
+                gutterBottom
+                fontWeight="bold"
+                sx={{
+                    fontSize: "1.1rem",
+                    borderBottom: "1px solid #ccc",
+                    pb: 1,
+                    mb: 3,
+                }}
+            >
+                Informations sur le baccalauréat
+            </Typography>
+            <Grid
+                container
+                spacing={{ xs: 2, sm: 3 }}
+                sx={{
+                    width: "100%",
+                    border: "1px solid #ccc",
+                    p: 2,
+                    borderRadius: 1,
+                }}
+            >
                 {/* Série du Baccalauréat */}
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                     <TextField
                         select
                         fullWidth
@@ -65,7 +67,7 @@ export default function HighSchoolDetails() {
                 </Grid>
 
                 {/* Session de baccalauréat */}
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                     <TextField
                         type="date"
                         fullWidth
@@ -80,7 +82,7 @@ export default function HighSchoolDetails() {
 
                 {/* Moyenne obtenue */}
 
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                     <TextField
                         type="number"
                         fullWidth
@@ -91,6 +93,6 @@ export default function HighSchoolDetails() {
                     />
                 </Grid>
             </Grid>
-        </Box>
+        </>
     );
 }

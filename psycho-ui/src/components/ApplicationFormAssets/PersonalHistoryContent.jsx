@@ -8,9 +8,9 @@ import {
     FormControl,
     FormHelperText,
     Typography,
+    InputAdornment,
 } from "@mui/material";
-
-import InputAdornment from "@mui/material/InputAdornment";
+import PortraitIcon from "@mui/icons-material/Portrait";
 
 const genderOptions = [
     { value: "M", label: "Masculin" },
@@ -34,20 +34,36 @@ export default function PersonalHistoryContent({ displayNotice = true }) {
                     <span aria-label="required">*</span>
                 </Typography>
             )}
+            <Typography
+                variant="h6"
+                gutterBottom
+                fontWeight="bold"
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    fontSize: "1.2rem",
+                    borderBottom: "1px solid #ccc",
+                    pb: 1,
+                    mb: 3,
+                }}
+            >
+                <PortraitIcon color="primary" />
+                Informations personnelles
+            </Typography>
 
             <Grid
                 container
-                spacing={2}
-                gap={3}
+                spacing={{ xs: 2, sm: 3 }}
                 sx={{
                     border: "1px solid #ccc",
-                    padding: 2,
+                    p: 2,
                     borderRadius: 1,
                     width: "100%",
                 }}
             >
                 {/* First Name */}
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 4 }}>
                     <TextField
                         fullWidth
                         label="Prénom *"
@@ -58,7 +74,7 @@ export default function PersonalHistoryContent({ displayNotice = true }) {
                 </Grid>
 
                 {/* Last Name */}
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 4 }}>
                     <TextField
                         fullWidth
                         label="Nom *"
@@ -69,7 +85,7 @@ export default function PersonalHistoryContent({ displayNotice = true }) {
                 </Grid>
 
                 {/* Date of Birth */}
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 4 }}>
                     <TextField
                         fullWidth
                         type="date"
@@ -82,14 +98,14 @@ export default function PersonalHistoryContent({ displayNotice = true }) {
                 </Grid>
 
                 {/* Gender */}
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 4 }}>
                     <FormControl fullWidth error={!!getError("gender")}>
                         <InputLabel id="gender">Genre *</InputLabel>
                         <Select
                             labelId="gender"
                             label="Genre *"
                             {...register("personalHistory.gender")}
-                            value={watch("personalHistory.gender") || ""} // Because mui is not getting the default value from RHF
+                            value={watch("personalHistory.gender") || ""}
                         >
                             {genderOptions.map((option) => (
                                 <MenuItem
@@ -107,7 +123,7 @@ export default function PersonalHistoryContent({ displayNotice = true }) {
                 </Grid>
 
                 {/* Email */}
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 4 }}>
                     <TextField
                         fullWidth
                         type="email"
@@ -119,7 +135,7 @@ export default function PersonalHistoryContent({ displayNotice = true }) {
                 </Grid>
 
                 {/* Phone */}
-                <Grid size={{ xs: 12, md: 6 }}>
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4, xl: 4 }}>
                     <TextField
                         fullWidth
                         type="tel"

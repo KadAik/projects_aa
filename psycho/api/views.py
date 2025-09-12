@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from rest_framework import (
     generics,
@@ -7,19 +8,20 @@ from rest_framework import (
 from rest_framework import status as drf_status
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.decorators import api_view
 
 from psycho.models import (
     User,
     AdminProfile,
     ApplicantProfile,
-    Application,
+    Application, ApplicationStatusHistory,
 )
 from psycho.paginators import SafePageNumberPagination
 from psycho.serializers import (
     UserSerializer,
     AdminProfileSerializer,
     ApplicantProfileSerializer,
-    ApplicationSerializer
+    ApplicationSerializer, ApplicationStatusHistorySerializer
 )
 
 
@@ -83,7 +85,9 @@ class ApplicationViewSet(viewsets.ViewSet):
             serialized_item = self.serializer_class(instance=application, context={'request': request})
             return Response(serialized_item.data, status=drf_status.HTTP_200_OK)
 
-        queryset = Application.objects.select_related('applicant').all()
+        queryset = Application.objects.prefetch_related(
+            Prefetch('status_history', queryset=ApplicationStatusHistory.objects.select_related('changed_by').order_by(
+                '-date_changed')), )
         # Filters
         status = request.query_params.get('status')
         degree = request.query_params.get('degree')
@@ -167,7 +171,17 @@ class ApplicationViewSet(viewsets.ViewSet):
 
             serializer = self.serializer_class(instance, data=data, partial=True, context={'request': request})
             serializer.is_valid(raise_exception=True)
-            
+
             serializer.save()
 
         return Response(serializer.data, status=drf_status.HTTP_200_OK)
+
+
+@api_view(['get'])
+def application_status_history(request, pk):
+    """
+    List all application status history for a specific application.
+    """
+    status_history = ApplicationStatusHistory.objects.filter(application_id=pk)
+    status_history_serializer = ApplicationStatusHistorySerializer(status_history, many=True)
+    return Response(status_history_serializer.data, status=drf_status.HTTP_200_OK)
