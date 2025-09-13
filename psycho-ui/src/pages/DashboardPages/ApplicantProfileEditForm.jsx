@@ -8,7 +8,7 @@ import { LocalizationProvider } from "@toolpad/core/AppProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import Button from "@mui/material/Button";
 import EducationalBackgroundContent from "../../components/ApplicationFormAssets/EducationalBackgroundContent";
-import { fetchData } from "../../utils/crud";
+import { fetchData } from "../../utils/requests";
 import { useQuery } from "@tanstack/react-query";
 import { mapApplicationToFormData } from "../../components/ApplicationFormAssets/utils";
 import { useLocation, useParams } from "react-router-dom";

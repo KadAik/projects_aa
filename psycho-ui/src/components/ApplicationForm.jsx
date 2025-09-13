@@ -15,7 +15,7 @@ import { schema } from "./ApplicationFormAssets/validationRules.js";
 import { handleFailedApplicationSubmission } from "./ApplicationFormAssets/utils.js";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import ApplicationFormStepper from "./ApplicationFormAssets/ApplicationFormStepper.jsx";
-import { postData as postApplication } from "../utils/crud.js";
+import { postData as postApplication } from "../utils/requests.js";
 import { mapFormDataToApi } from "../shared/psychoApi/utils.js";
 
 const ApplicationForm = () => {

@@ -4,7 +4,7 @@ import {
     useQuery,
     useQueryClient,
 } from "@tanstack/react-query";
-import { fetchData, postData } from "../../utils/crud";
+import { fetchData, postData } from "../../utils/requests";
 
 const ENDPOINT = "http://127.0.0.1:8000/psycho/api/applications";
 
