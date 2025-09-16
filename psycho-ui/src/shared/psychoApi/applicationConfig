@@ -1,3 +1,6 @@
+export const APPLICATIONS_API_ENDPOINT =
+    "http://127.0.0.1:8000/psycho/api/applications";
+
 export const applicationStatus = {
     Pending: { label: "En attente", color: "warning" },
     UnderReview: { label: "En cours d'examen", color: "info" },

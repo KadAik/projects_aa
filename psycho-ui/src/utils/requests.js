@@ -74,3 +74,58 @@ export async function fetchData(source, queryParams = {}) {
         throw err;
     }
 }
+
+export async function get(source) {
+    console.log("GET request to:", source);
+    if (!source) {
+        throw new Error(
+            "Source URL is required, provide it via 'source' parameter."
+        );
+    }
+    if (typeof source !== "string") {
+        throw new Error("Source URL must be a string.");
+    }
+    try {
+        const response = await axios.get(source);
+        const contentType = response.headers["content-type"];
+        const statusCode = response.status;
+        return {
+            data: response.data,
+            status: statusCode,
+            contentType: contentType,
+        };
+    } catch (e) {
+        if (axios.isAxiosError(e)) {
+            console.log(
+                "Axios error when fectching data from ",
+                source,
+                ": ",
+                e.message
+            );
+            const err = new Error(e.message);
+            err.cause = {
+                message: e.message,
+                code: e.code,
+                status: e.response?.status,
+                data: e.response?.data,
+                headers: e.response?.headers,
+                response: e.response,
+                request: e.request,
+            };
+            err.stack = e.stack;
+            throw err;
+        }
+        console.log(
+            "Unexpected error when fectching data from ",
+            source,
+            ": ",
+            e
+        );
+        const unexpectedError = new Error(
+            "Unexpected error occured while fetching data"
+        );
+        unexpectedError.cause = e;
+        unexpectedError.stack = e?.stack ?? new Error().stack;
+        throw unexpectedError;
+    }
+}

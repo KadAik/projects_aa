@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 
 import {
     DataGrid,
@@ -17,9 +23,9 @@ import {
     Stack,
     Typography,
 } from "@mui/material";
-import { useApplications } from "../../assets/PsychoAPI/requests";
+
 import ApplicationSearchAndFilterBar from "../../components/DashboardPagesAssets/ApplicationSearchAndFilterBar";
-import { useForm } from "react-hook-form";
+import { set, useForm, useWatch } from "react-hook-form";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { useGridApiContext } from "@mui/x-data-grid";
@@ -35,6 +41,14 @@ import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import GavelOutlinedIcon from "@mui/icons-material/GavelOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import { useApplications } from "../../shared/psychoApi/hooks";
+import { cloneDeep, debounce, isEqual } from "lodash";
+
+const filtersInitialState = {
+    status: "",
+    degree: "",
+    baccalaureate_series: "",
+};
 
 function sortModelFromVerboseToCompactStyle(sortModelVerbose) {
     // Example transform [{ field: "fieldName", sort: "asc" }] to ["fieldName"] or
@@ -44,11 +58,9 @@ function sortModelFromVerboseToCompactStyle(sortModelVerbose) {
         .map((item) => (item.sort === "desc" ? `-${item.field}` : item.field));
 }
 
-function SortIcon({ field }) {
+const SortIcon = React.memo(function SortIcon({ field }) {
     const { sortHistory = [], sortModel = {} } =
         useApplicationDataGridContext();
-    // const sortModel = apiRef.current?.sortModelObj || {};
-    // const sortHistory = apiRef.current?.sortHistory || [];
     const sort = sortModel[field]?.sort || "";
     let position = sortHistory.length > 1 ? sortHistory.indexOf(field) + 1 : 0;
     const active = Boolean(sort);
@@ -127,7 +139,7 @@ function SortIcon({ field }) {
             }
         </>
     );
-}
+});
 
 function ActionsPagination({ page, onPageChange, className }) {
     const apiRef = useGridApiContext();
@@ -152,6 +164,15 @@ function ActionsPagination({ page, onPageChange, className }) {
     );
 }
 
+const RenderHeader = React.memo(({ headerName, field }) => (
+    <Stack direction="row">
+        <Typography variant="body1" fontWeight="bold">
+            {headerName} &nbsp;
+        </Typography>
+        {sortableColumns.includes(field) && <SortIcon field={field} />}
+    </Stack>
+));
+
 const sortableColumns = [
     "first_name",
     "last_name",
@@ -159,12 +180,6 @@ const sortableColumns = [
     "status",
     "baccalaureate_series",
 ];
-
-const filtersInitialState = {
-    status: "",
-    degree: "",
-    baccalaureateSeries: "",
-};
 
 const ODD_OPACITY = 0.2;
 
@@ -204,12 +219,19 @@ const StripedDataGrid = styled(DataGrid)(({ theme }) => ({
     },
 }));
 
+let renderCount = 0;
+
 const ApplicationsList = () => {
+    // Performance monitoring
+    renderCount += 1;
+    const renders = useRef(0);
+    renders.current++;
+    useEffect(() => {
+        console.log("Render #", renders.current);
+    });
+    console.log("ApplicationList component render count is : ", renderCount);
     // For multiple fields sorting
     const [ctrlPressed, setCtrlPressed] = useState(false);
-    const { register, watch, reset, setValue } = useForm({
-        defaultValues: filtersInitialState,
-    });
 
     const apiRef = useGridApiRef();
 
@@ -234,22 +256,108 @@ const ApplicationsList = () => {
     //     apiRef.current.sortHistory = sortHistory;
     // }
 
-    const filters = watch();
+    const [searchParams, setSearchParams] = useSearchParams({});
+
+    const debouncedSetSearchParams = useCallback(
+        debounce((params) => {
+            setSearchParams(params, { replace: false });
+        }, 300),
+        []
+    );
+
+    // Filtering
+
+    const filterInitialFromUrl = Object.fromEntries(searchParams.entries());
+
+    const { register, watch, reset, setValue, getValues, control } = useForm({
+        defaultValues: { ...filtersInitialState, ...filterInitialFromUrl },
+    });
+
+    const filters = useWatch({ control });
+
+    const activeFilters = useMemo(
+        () => Object.fromEntries(Object.entries(filters).filter(([_, v]) => v)),
+        [filters]
+    );
+
+    const previousFilterFormState = useRef({ ...filtersInitialState });
+
+    // 1. Sync URL if form is changed by FORM interaction
+    useEffect(() => {
+        const filtersFromUrl = Object.fromEntries(searchParams.entries());
+        console.log("a. Filters from url : ", filtersFromUrl);
+        console.log("b. Active filters : ", activeFilters);
+
+        if (!isEqual(activeFilters, filtersFromUrl)) {
+            // url and form are not in sync
+            console.log(
+                "c. Active filters and url Filters are not equal, step 1 from setSearchParams"
+            );
+            console.log(
+                "d. Previous state from ref is : ",
+                previousFilterFormState.current
+            );
+            // Does the change originated from url navigation or form interaction
+            if (!isEqual(previousFilterFormState.current, filters)) {
+                console.log(
+                    "e. Previous state differs from filters, setting searchParams..."
+                );
+                //previousFilterFormState.current = cloneDeep(filters);
+                debouncedSetSearchParams(activeFilters);
+            }
+        }
+    }, [activeFilters, searchParams, setSearchParams]);
+
+    // 2. Sync form if url is changed by back/forth navigation
+    useEffect(() => {
+        const filtersFromUrl = Object.fromEntries(searchParams.entries());
+        const newValues = { ...filtersInitialState, ...filtersFromUrl };
+
+        console.log("1. Filters from url => : ", newValues);
+        console.log("2. Actual form state : ", getValues());
+        console.log(
+            "3. Previous state with useRef : ",
+            previousFilterFormState.current
+        );
+
+        if (!isEqual(getValues(), newValues)) {
+            console.log(
+                "4. Current form state differs from newValues, one step to reset"
+            );
+            if (isEqual(previousFilterFormState.current, filters))
+                console.log(
+                    "5. Previous state by ref is equal to filters => change from url, resetting..."
+                );
+            //previousFilterFormState.current = cloneDeep(newValues);
+            reset(newValues);
+        }
+    }, [searchParams, reset, getValues, filters]);
+
+    // 3. Update the ref AFTER either effect changes form state
+    useEffect(() => {
+        previousFilterFormState.current = getValues();
+    }, [filters, searchParams, getValues]);
+
+    const { data, isLoading } = useApplications({
+        queryParams: Object.fromEntries(searchParams.entries()),
+    });
 
     console.log("The pagination model is : ", paginationModel);
 
-    const { data, isLoading } = useApplications({
-        filters,
-        sort_by: sortModelFromVerboseToCompactStyle(Object.values(sortModel)),
-        pagination: {
-            page: paginationModel.page + 1,
-            pageSize: paginationModel.pageSize,
-        },
-    });
+    // const { data, isLoading } = useApplications({
+    //     filters,
+    //     sort_by: sortModelFromVerboseToCompactStyle(Object.values(sortModel)),
+    //     pagination: {
+    //         page: paginationModel.page + 1,
+    //         pageSize: paginationModel.pageSize,
+    //     },
+    // });
 
     useEffect(() => {
-        setRowCount((prev) => (data?.count !== undefined ? data.count : prev));
-    }, [data?.count]);
+        setRowCount((prev) =>
+            data?.data?.count !== undefined ? data?.data?.count : prev
+        );
+    }, [data]);
 
     useEffect(() => {
         const handleKeyDown = (event) => {
@@ -438,14 +546,10 @@ const ApplicationsList = () => {
             columns_.map((item) => ({
                 ...item,
                 renderHeader: () => (
-                    <Stack direction="row">
-                        <Typography variant="body1" fontWeight="bold">
-                            {item.headerName} &nbsp;
-                        </Typography>
-                        {sortableColumns.includes(item.field) && (
-                            <SortIcon field={item.field} />
-                        )}
-                    </Stack>
+                    <RenderHeader
+                        headerName={item.headerName}
+                        field={item.field}
+                    />
                 ),
             })),
         [columns_]
@@ -478,7 +582,7 @@ const ApplicationsList = () => {
                         },
                     }}
                     columns={columns}
-                    rows={data?.results ?? []}
+                    rows={data?.data?.results ?? []}
                     getRowId={(row) => row.application_id}
                     loading={isLoading}
                     initialState={{

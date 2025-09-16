@@ -10,10 +10,10 @@ import Button from "@mui/material/Button";
 import EducationalBackgroundContent from "../../components/ApplicationFormAssets/EducationalBackgroundContent";
 import { fetchData } from "../../utils/requests";
 import { useQuery } from "@tanstack/react-query";
-import { mapApplicationToFormData } from "../../components/ApplicationFormAssets/utils";
 import { useLocation, useParams } from "react-router-dom";
 import SchoolIcon from "@mui/icons-material/School";
 import { formatDate } from "../../utils/utils";
+import { mapApplicationToFormData } from "../../shared/psychoApi/utils";
 const url =
     "http://127.0.0.1:8000/psycho/api/applications/49f23ac7-b2b7-4d43-8bee-15088d9a818d/";
 
