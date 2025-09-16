@@ -267,22 +267,63 @@ const ApplicationsList = () => {
 
     // Filtering
 
-    const filterInitialFromUrl = Object.fromEntries(searchParams.entries());
-
-    const { register, watch, reset, setValue, getValues, control } = useForm({
-        defaultValues: { ...filtersInitialState, ...filterInitialFromUrl },
-    });
-
-    const filters = useWatch({ control });
-
-    const activeFilters = useMemo(
-        () => Object.fromEntries(Object.entries(filters).filter(([_, v]) => v)),
-        [filters]
+    // Runs once on mount
+    const filtersInitialFromUrl = useMemo(
+        () => Object.fromEntries(searchParams.entries()),
+        []
     );
 
-    const previousFilterFormState = useRef({ ...filtersInitialState });
+    const { register, watch, reset, setValue, getValues, control } = useForm({
+        defaultValues: { ...filtersInitialState, ...filtersInitialFromUrl },
+    });
 
-    // 1. Sync URL if form is changed by FORM interaction
+    // Store the latest form state to detect if changes came from URL (back/forward nav) or form
+    const previousFormStateRef = useRef({
+        ...filtersInitialState,
+        ...filtersInitialFromUrl,
+    });
+
+    // The purpose is actually to rerender the component on form changes as we are not submitting, just reading values
+    // But we need some optimization to avoid rerender on object reference changes during render
+    const { status, degree, baccalaureate_series } = useWatch({ control });
+
+    // We stabilize filters
+    const filters = useMemo(
+        () => ({ status, degree, baccalaureate_series }),
+        [status, degree, baccalaureate_series]
+    );
+
+    // Sync URL with filter form state and vice-versa
+    useEffect(() => {
+        console.log("Filters effect running ...");
+        const currentFormValues = getValues(); // or filters
+        const filtersFromUrl = Object.fromEntries(searchParams.entries());
+        // Active form values (only truthy ones matter for query params)
+        const activeFilters = Object.fromEntries(
+            Object.entries(currentFormValues).filter(([, v]) => v)
+        );
+
+        // If URL differs from form state, need to sync both
+        if (!isEqual(activeFilters, filtersFromUrl)) {
+            // Only reset if the change didn't originate from the form itself (back/forward nav)
+            // (prevents infinite loops if form changes trigger URL update which then triggers form reset)
+            // 1. URL changes -> update form.
+            if (isEqual(previousFormStateRef.current, currentFormValues)) {
+                reset(filtersFromUrl);
+                console.log("Form state updated from URL params.");
+            }
+            // And the change originates from the form itself (on filters click) : previousRef differs from current form state
+            // 2. Form changes -> update URL.
+            else {
+                debouncedSetSearchParams(activeFilters); // Debouncing avoids excessive URL updates during typing
+                console.log("URL params updated from form state.");
+            }
+        }
+        // Update the ref *after* all checks and potential updates to keep it in sync with current situation
+        previousFormStateRef.current = getValues();
+    }, [searchParams, reset, getValues, debouncedSetSearchParams, filters]);
+
+    /*// 1. Sync URL if form is changed by FORM interaction
     useEffect(() => {
         const filtersFromUrl = Object.fromEntries(searchParams.entries());
         console.log("a. Filters from url : ", filtersFromUrl);
@@ -337,6 +378,7 @@ const ApplicationsList = () => {
     useEffect(() => {
         previousFilterFormState.current = getValues();
     }, [filters, searchParams, getValues]);
+    */
 
     const { data, isLoading } = useApplications({
         queryParams: Object.fromEntries(searchParams.entries()),
@@ -604,9 +646,9 @@ const ApplicationsList = () => {
                     slotProps={{
                         toolbar: {
                             sortHistory: sortHistory,
-                            apiRef: apiRef,
+                            setSortModel: apiRef.current?.setSortModel,
                             filters: filters,
-                            resetFilters: reset,
+                            clearFilters: reset,
                             setFilterValue: setValue,
                         },
                         basePagination: {
