@@ -13,6 +13,7 @@ import InputBase from "@mui/material/InputBase";
 
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
+import { useWatch } from "react-hook-form";
 
 const status = [
     { value: "Pending", label: "Pending" },
@@ -35,7 +36,13 @@ const baccalaureateSeries = [
     { value: "F", label: "Bac F" },
 ];
 
-const TopToolBar = ({ register, watch }) => {
+export default function ApplicationSearchAndFilterBar({ register, control }) {
+    const statusValue = useWatch({ control, name: "status" });
+    const degreeValue = useWatch({ control, name: "degree" });
+    const baccalaureateSeriesValue = useWatch({
+        control,
+        name: "baccalaureate_series",
+    });
     const theme = useTheme();
     return (
         <Paper
@@ -80,7 +87,7 @@ const TopToolBar = ({ register, watch }) => {
                                 },
                             }}
                             {...register("status")}
-                            value={watch("status") || ""} // Ensure the value is controlled
+                            value={statusValue || ""} // Ensure the value is controlled
                         >
                             {status.map((option) => (
                                 <MenuItem
@@ -106,7 +113,7 @@ const TopToolBar = ({ register, watch }) => {
                                 },
                             }}
                             {...register("degree")}
-                            value={watch("degree") || ""} // Ensure the value is controlled
+                            value={degreeValue || ""} // Ensure the value is controlled
                         >
                             {degreeOptions.map((option) => (
                                 <MenuItem
@@ -133,7 +140,7 @@ const TopToolBar = ({ register, watch }) => {
                             }}
                             label="All"
                             {...register("baccalaureate_series")}
-                            value={watch("baccalaureate_series") || ""}
+                            value={baccalaureateSeriesValue || ""}
                         >
                             {baccalaureateSeries.map((option) => (
                                 <MenuItem
@@ -182,6 +189,4 @@ const TopToolBar = ({ register, watch }) => {
             </Stack>
         </Paper>
     );
-};
-
-export default TopToolBar;
+}

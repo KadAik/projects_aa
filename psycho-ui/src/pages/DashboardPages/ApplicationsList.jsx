@@ -38,7 +38,7 @@ import {
 } from "../../contexts/applicationDataGridContext";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, replace, useNavigate, useSearchParams } from "react-router-dom";
 import GavelOutlinedIcon from "@mui/icons-material/GavelOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { useApplications } from "../../shared/psychoApi/hooks";
@@ -229,19 +229,49 @@ const ApplicationsList = () => {
     useEffect(() => {
         console.log("Render #", renders.current);
     });
+
+    const [searchParams, setSearchParams] = useSearchParams({});
+    const debouncedSetSearchParams = useCallback(
+        debounce((params) => {
+            setSearchParams(params, { replace: false });
+        }, 300),
+        []
+    );
+
     console.log("ApplicationList component render count is : ", renderCount);
     // For multiple fields sorting
     const [ctrlPressed, setCtrlPressed] = useState(false);
 
     const apiRef = useGridApiRef();
 
+    // sortModel struct eg. : {first_name: {field: "first_name", sort: "asc"}, date_submitted: {field: "date_submitted", sort: "desc"}}
     const [sortModel, setSortModel] = useState({}); // sortModel should be an array of objects, but using {}
     // is just a workaround as useApplication is already getting an array
-    // sortModel struct eg. : {first_name: {field: "first_name", sort: "asc"}, date_submitted: {field: "date_submitted", sort: "desc"}}
+
     const [sortHistory, setSortHistory] = useState([]);
 
     // Let's attach a custom field (sortModel) to apiRef, for custom use (handle multiple sort in column def)
     // as we cannot directly set this field on the community DataGrid
+
+    // --- Sort effect ---
+    useEffect(() => {
+        setSearchParams(
+            (prevSearchParams) => {
+                if (Object.values(sortModel).length === 0) {
+                    prevSearchParams.delete("sort_by");
+                } else {
+                    prevSearchParams.set(
+                        "sort_by",
+                        sortModelFromVerboseToCompactStyle(
+                            Object.values(sortModel)
+                        )
+                    );
+                }
+                return prevSearchParams;
+            },
+            { replace: false }
+        );
+    }, [sortModel, setSearchParams]);
 
     const [paginationModel, setPaginationModel] = useState({
         //Django drf pagination is 1-based index whereas Grid is 0-based
@@ -256,15 +286,6 @@ const ApplicationsList = () => {
     //     apiRef.current.sortHistory = sortHistory;
     // }
 
-    const [searchParams, setSearchParams] = useSearchParams({});
-
-    const debouncedSetSearchParams = useCallback(
-        debounce((params) => {
-            setSearchParams(params, { replace: false });
-        }, 300),
-        []
-    );
-
     // Filtering
 
     // Runs once on mount
@@ -273,7 +294,7 @@ const ApplicationsList = () => {
         []
     );
 
-    const { register, watch, reset, setValue, getValues, control } = useForm({
+    const { register, reset, setValue, getValues, control } = useForm({
         defaultValues: { ...filtersInitialState, ...filtersInitialFromUrl },
     });
 
@@ -315,7 +336,10 @@ const ApplicationsList = () => {
             // And the change originates from the form itself (on filters click) : previousRef differs from current form state
             // 2. Form changes -> update URL.
             else {
-                debouncedSetSearchParams(activeFilters); // Debouncing avoids excessive URL updates during typing
+                debouncedSetSearchParams((prev) => ({
+                    ...prev,
+                    ...activeFilters,
+                })); // Debouncing avoids excessive URL updates during typing
                 console.log("URL params updated from form state.");
             }
         }
@@ -428,16 +452,17 @@ const ApplicationsList = () => {
         // in order to facilitate handling (to avoid duplicates fields)
         // Hence when encountering the same field the second time for reverse order, we can easily overwrite the previous.
         if (!newSortModel.length) {
+            // empty array
             // reset the sort
             setSortModel({});
             setSortHistory([]);
             return;
         }
 
+        const { field, sort } = newSortModel[0]; // Mui DataGrid sends one item array;
+
         // If Ctrl key is pressed when the event occurs, append to existing sort (multiple sorting)
         if (ctrlPressed) {
-            const { field, sort } = newSortModel[0];
-
             // DataGrid community is stateless per field, thus when Ctrl+click back on first_name for example, the grid
             // doesn’t remember it previously is asc/desc/null
             // — it just starts its cycle again (asc → desc → null) as if it was a fresh column.
@@ -472,7 +497,6 @@ const ApplicationsList = () => {
             });
         } else {
             // no Ctrl -> reset everything
-            const { field, sort } = newSortModel[0];
             if (sort === "null") {
                 setSortModel({});
                 setSortHistory([]);
@@ -597,9 +621,24 @@ const ApplicationsList = () => {
         [columns_]
     );
 
+    const toolbarProps = useMemo(
+        () => ({
+            sortHistory,
+            setSortModel: apiRef.current?.setSortModel,
+            filters,
+            clearFilters: reset,
+            setFilterValue: setValue,
+            setSearchParams,
+        }),
+        [sortHistory, filters, reset, setValue, setSearchParams]
+    );
+
     return (
         <ApplicationDataGridContext.Provider value={providerValue}>
-            <ApplicationSearchAndFilterBar register={register} watch={watch} />
+            <ApplicationSearchAndFilterBar
+                register={register}
+                control={control}
+            />
             <Box
                 sx={{
                     width: "100%",
@@ -644,13 +683,7 @@ const ApplicationsList = () => {
                         toolbar: ApplicationToolBar,
                     }}
                     slotProps={{
-                        toolbar: {
-                            sortHistory: sortHistory,
-                            setSortModel: apiRef.current?.setSortModel,
-                            filters: filters,
-                            clearFilters: reset,
-                            setFilterValue: setValue,
-                        },
+                        toolbar: toolbarProps,
                         basePagination: {
                             material: { ActionsComponent: ActionsPagination },
                         },
