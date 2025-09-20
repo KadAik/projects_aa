@@ -38,11 +38,25 @@ import {
 } from "../../contexts/applicationDataGridContext";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
-import { Link, replace, useNavigate, useSearchParams } from "react-router-dom";
+import {
+    Link,
+    replace,
+    useNavigate,
+    useNavigationType,
+    useSearchParams,
+} from "react-router-dom";
 import GavelOutlinedIcon from "@mui/icons-material/GavelOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { useApplications } from "../../shared/psychoApi/hooks";
-import { cloneDeep, debounce, isEqual } from "lodash";
+import { debounce, isEqual } from "lodash";
+import { useIsBrowserNavigation } from "../../utils/hooks";
+import {
+    sortModelFromCompactToVerboseStyle,
+    sortModelFromVerboseToCompactStyle,
+} from "../../utils/utils";
+
+// Sort cycle order
+const cycle = ["asc", "desc", "null"];
 
 const filtersInitialState = {
     status: "",
@@ -50,13 +64,43 @@ const filtersInitialState = {
     baccalaureate_series: "",
 };
 
-function sortModelFromVerboseToCompactStyle(sortModelVerbose) {
-    // Example transform [{ field: "fieldName", sort: "asc" }] to ["fieldName"] or
-    // [{ field: "fieldName", sort: "desc" }] to ["-fieldName"]
-    return sortModelVerbose
-        .filter((item) => item.sort) // keep only items that have a sort defined
-        .map((item) => (item.sort === "desc" ? `-${item.field}` : item.field));
-}
+const syncSortModelFromUrl = ({
+    urlSortParamArray,
+    setSortModel,
+    setSortHistory,
+}) => {
+    if (urlSortParamArray.length === 0) {
+        //reset the sort
+        setSortModel({});
+        setSortHistory([]);
+        return;
+    }
+    const verboseSortModel =
+        sortModelFromCompactToVerboseStyle(urlSortParamArray);
+
+    const newSortModel = {};
+    const newSortHistory = verboseSortModel.map((sortItem) => {
+        newSortModel[sortItem.field] = sortItem;
+        return sortItem.field;
+    });
+
+    setSortModel(newSortModel);
+    setSortHistory(newSortHistory);
+};
+
+const syncUrlFromSortModel = ({ compactSortModel, setSearchParams }) => {
+    setSearchParams(
+        (prevSearchParams) => {
+            if (compactSortModel.length === 0) {
+                prevSearchParams.delete("sort_by");
+            } else {
+                prevSearchParams.set("sort_by", compactSortModel);
+            }
+            return prevSearchParams;
+        },
+        { replace: false }
+    );
+};
 
 const SortIcon = React.memo(function SortIcon({ field }) {
     const { sortHistory = [], sortModel = {} } =
@@ -230,6 +274,9 @@ const ApplicationsList = () => {
         console.log("Render #", renders.current);
     });
 
+    // Will be used to detect browser navigation (back/forward)
+    const isBrowserNavigation = useIsBrowserNavigation();
+
     const [searchParams, setSearchParams] = useSearchParams({});
     const debouncedSetSearchParams = useCallback(
         debounce((params) => {
@@ -250,28 +297,94 @@ const ApplicationsList = () => {
 
     const [sortHistory, setSortHistory] = useState([]);
 
+    const sortModelChangeRef = useRef("browser"); // user or browser
+
     // Let's attach a custom field (sortModel) to apiRef, for custom use (handle multiple sort in column def)
     // as we cannot directly set this field on the community DataGrid
 
     // --- Sort effect ---
-    useEffect(() => {
-        setSearchParams(
-            (prevSearchParams) => {
-                if (Object.values(sortModel).length === 0) {
-                    prevSearchParams.delete("sort_by");
-                } else {
-                    prevSearchParams.set(
-                        "sort_by",
-                        sortModelFromVerboseToCompactStyle(
-                            Object.values(sortModel)
-                        )
-                    );
-                }
-                return prevSearchParams;
-            },
-            { replace: false }
+    /*useEffect(() => {
+        const currentSortFromUrl = searchParams.get("sort_by") ?? [];
+        const compactSortModel = sortModelFromVerboseToCompactStyle(
+            Object.values(sortModel) // array like e.g ['first_name', '-date_submitted']
         );
-    }, [sortModel, setSearchParams]);
+        const isSortModelAndUrlOutOfSync = !isEqual(
+            currentSortFromUrl,
+            compactSortModel
+        );
+
+        console.log("Sort model is : ", sortModel);
+        console.log("Sort model in compact form is : ", compactSortModel);
+        console.log("Current sort from url is : ", currentSortFromUrl)  
+        console.log("Is browser navigation : ", isBrowserNavigation);
+        console.log(
+            "Is sort model and URL out of sync : ",
+            isSortModelAndUrlOutOfSync
+        );
+        // If it is not a back/forward navigation and the sort from url differs from the actual current one sync the url
+        if (isSortModelAndUrlOutOfSync && !isBrowserNavigation) {
+            setSearchParams(
+                (prevSearchParams) => {
+                    if (Object.values(sortModel).length === 0) {
+                        prevSearchParams.delete("sort_by");
+                    } else {
+                        prevSearchParams.set("sort_by", compactSortModel);
+                    }
+                    return prevSearchParams;
+                },
+                { replace: false }
+            );
+        }
+    }, [sortModel, setSearchParams, searchParams, apiRef]);
+    */
+
+    useEffect(() => {
+        const currentSortFromUrl = searchParams.getAll("sort_by") || []; // beware, if ?sort_by=last_name%2Cdate_submitted
+        // => getAll returns ['last_name,date_submitted'], an array of one element ; in such a case need to split by ','
+        // in order to match the compactSortModel array.
+        const currentSortFromUrlArray =
+            (
+                currentSortFromUrl.length > 0 &&
+                currentSortFromUrl[0]?.includes(",")
+            ) ?
+                currentSortFromUrl[0].split(",")
+            :   currentSortFromUrl;
+
+        console.log("Current sort from url array : ", currentSortFromUrlArray);
+        const compactSortModel = sortModelFromVerboseToCompactStyle(
+            Object.values(sortModel)
+        ); // array like e.g ['first_name', '-date_submitted']
+        console.log("Current sort model in compact style : ", compactSortModel);
+
+        const areSortModelAndUrlOutOfSync = !isEqual(
+            currentSortFromUrlArray,
+            compactSortModel
+        );
+
+        console.log({ areSortModelAndUrlOutOfSync });
+
+        if (areSortModelAndUrlOutOfSync) {
+            // If the change came from the user (appyling a sort : sortModel changes) => update the url
+            const shouldUpdateUrl = sortModelChangeRef.current === "user";
+            // If the originated from the browser (back/forward navigation : searchParams changes) => update the sortModel
+            const shouldUpdateSortModel =
+                sortModelChangeRef.current === "browser";
+
+            console.log({ shouldUpdateSortModel, shouldUpdateUrl });
+
+            if (shouldUpdateSortModel) {
+                syncSortModelFromUrl({
+                    urlSortParamArray: currentSortFromUrlArray,
+                    setSortModel,
+                    setSortHistory,
+                });
+            } else if (shouldUpdateUrl) {
+                syncUrlFromSortModel({ compactSortModel, setSearchParams });
+            }
+
+            sortModelChangeRef.current = "browser";
+        }
+    }, [sortModel, setSearchParams, searchParams, isBrowserNavigation]);
 
     const [paginationModel, setPaginationModel] = useState({
         //Django drf pagination is 1-based index whereas Grid is 0-based
@@ -290,7 +403,12 @@ const ApplicationsList = () => {
 
     // Runs once on mount
     const filtersInitialFromUrl = useMemo(
-        () => Object.fromEntries(searchParams.entries()),
+        () =>
+            Object.fromEntries(
+                [...searchParams.entries()].filter(
+                    ([key]) => key in filtersInitialState
+                )
+            ),
         []
     );
 
@@ -313,9 +431,69 @@ const ApplicationsList = () => {
         () => ({ status, degree, baccalaureate_series }),
         [status, degree, baccalaureate_series]
     );
+    console.log("1. Filters are : ", filters);
 
     // Sync URL with filter form state and vice-versa
     useEffect(() => {
+        console.log("Filters effect running ...");
+        // Get current values from form and URL
+        const currentFormValues = getValues();
+
+        // Url may contains unrelated query params to filters like sort_by, page... so we filter them out
+        // by whitelisting only the ones we care about
+        const filtersFromUrl = Object.fromEntries(
+            [...searchParams.entries()].filter(
+                ([key]) => key in filtersInitialState
+            )
+        );
+
+        // Active form values (only truthy ones matter for query params)
+        const activeFilters = Object.fromEntries(
+            Object.entries(currentFormValues).filter(([, v]) => v)
+        );
+
+        // Check if form and URL are out of sync in terms of filters (should exclude sorting, pagination ...)
+        const areFormAndUrlOutOfSync = !isEqual(activeFilters, filtersFromUrl);
+
+        if (areFormAndUrlOutOfSync) {
+            // Determine the source of the change to prevent infinite loops
+
+            // Case 1: Change came from URL (browser navigation - back/forward) => should update the form
+            // If previous form state matches current form state, it means the user
+            // didn't change the form - the URL changed via navigation
+            const changeCameFromUrl = isEqual(
+                previousFormStateRef.current,
+                currentFormValues
+            ); // Is form state changed ?
+
+            // Case 2: Change came from form (user interaction) => should update the url
+            // If previous form state differs from current form state, it means
+            // the user changed the form values
+            const changeCameFromForm = !changeCameFromUrl;
+
+            if (changeCameFromUrl) {
+                // URL changed via navigation → update form to match URL
+                reset({ ...filtersInitialState, ...filtersFromUrl });
+                console.log(
+                    "Form state updated from URL params (browser navigation)."
+                );
+            } else if (changeCameFromForm) {
+                // Form changed by user → update URL to match form
+                debouncedSetSearchParams((prev) => ({
+                    ...prev, // to keep other query params (sort, page...)
+                    ...activeFilters,
+                }));
+                console.log(
+                    "URL params updated from form state (user interaction)."
+                );
+            }
+        }
+
+        // Update the reference to track the current state for next comparison
+        previousFormStateRef.current = getValues();
+    }, [searchParams, reset, getValues, debouncedSetSearchParams, filters]);
+
+    /*useEffect(() => {
         console.log("Filters effect running ...");
         const currentFormValues = getValues(); // or filters
         const filtersFromUrl = Object.fromEntries(searchParams.entries());
@@ -326,11 +504,12 @@ const ApplicationsList = () => {
 
         // If URL differs from form state, need to sync both
         if (!isEqual(activeFilters, filtersFromUrl)) {
+            console.log("2. Active filters are : ", activeFilters);
             // Only reset if the change didn't originate from the form itself (back/forward nav)
             // (prevents infinite loops if form changes trigger URL update which then triggers form reset)
             // 1. URL changes -> update form.
             if (isEqual(previousFormStateRef.current, currentFormValues)) {
-                reset(filtersFromUrl);
+                reset({ ...filtersInitialState, ...filtersFromUrl });
                 console.log("Form state updated from URL params.");
             }
             // And the change originates from the form itself (on filters click) : previousRef differs from current form state
@@ -345,7 +524,8 @@ const ApplicationsList = () => {
         }
         // Update the ref *after* all checks and potential updates to keep it in sync with current situation
         previousFormStateRef.current = getValues();
-    }, [searchParams, reset, getValues, debouncedSetSearchParams, filters]);
+    }, [searchParams, reset, getValues, filters, debouncedSetSearchParams]);
+    */
 
     /*// 1. Sync URL if form is changed by FORM interaction
     useEffect(() => {
@@ -448,6 +628,7 @@ const ApplicationsList = () => {
     }, []);
 
     const handleSortModelChange = (newSortModel) => {
+        sortModelChangeRef.current = "user";
         // We will be keeping sortModel as : {field: {field: fieldName, sort: asc|desc|null}, {...}}
         // in order to facilitate handling (to avoid duplicates fields)
         // Hence when encountering the same field the second time for reverse order, we can easily overwrite the previous.
@@ -459,21 +640,20 @@ const ApplicationsList = () => {
             return;
         }
 
-        const { field, sort } = newSortModel[0]; // Mui DataGrid sends one item array;
+        const { field } = newSortModel[0]; // Mui DataGrid sends one item array;
+
+        // DataGrid community is stateless per field, thus when Ctrl+click back on first_name for example, the grid
+        // doesn’t remember it previously is asc/desc/null
+        // — it just starts its cycle again (asc → desc → null) as if it was a fresh column.
+        // Thus don't rely on DataGrid to get the correct next sort => manually cycle sort state based on previous value
+
+        // We are using custom logic to track sort cycle.
+
+        const prevSort = sortModel[field]?.sort ?? "null";
+        const nextSort = cycle[(cycle.indexOf(prevSort) + 1) % cycle.length];
 
         // If Ctrl key is pressed when the event occurs, append to existing sort (multiple sorting)
         if (ctrlPressed) {
-            // DataGrid community is stateless per field, thus when Ctrl+click back on first_name for example, the grid
-            // doesn’t remember it previously is asc/desc/null
-            // — it just starts its cycle again (asc → desc → null) as if it was a fresh column.
-            // Thus don't rely on DataGrid to get the correct next sort => manually cycle sort state based on previous value
-            const prevSort = sortModel[field]?.sort;
-            let nextSort = sort;
-
-            if (prevSort === "asc") nextSort = "desc";
-            if (prevSort === "desc") nextSort = "null";
-            // We leave the case of previous == "null" as anyhow the cycle will restarts on asc.
-
             setSortModel((prev) => {
                 // If the sort is "null", we reset the field (exclude it from sorts)
                 if (nextSort === "null") {
@@ -497,11 +677,11 @@ const ApplicationsList = () => {
             });
         } else {
             // no Ctrl -> reset everything
-            if (sort === "null") {
+            if (nextSort === "null") {
                 setSortModel({});
                 setSortHistory([]);
             } else {
-                setSortModel({ [field]: { field, sort } });
+                setSortModel({ [field]: { field, sort: nextSort } });
                 setSortHistory([field]);
             }
         }

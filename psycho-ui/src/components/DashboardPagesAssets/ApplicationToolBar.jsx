@@ -25,13 +25,12 @@ const ApplicationToolBar = ({
 }) => {
     const activeFilters = Object.entries(filters).filter(([, value]) => value);
 
+    console.log("Active filters from Toolbar : ", activeFilters);
+
     const onResetSorts = () => setSortModel([]);
     const onClearFilters = () => clearFilters(filtersInitialState);
 
-    const hasActiveFilters = () =>
-        Object.values(filters).some(
-            (value) => value != null && value !== "" && value !== false
-        );
+    const hasActiveFilters = () => activeFilters.length > 0;
 
     return (
         <Toolbar

@@ -72,3 +72,27 @@ export const formatDate = (dateString) => {
         minute: "2-digit",
     });
 };
+
+export function sortModelFromVerboseToCompactStyle(sortModelVerbose) {
+    // Example transform [{ field: "fieldName", sort: "asc" }] to ["fieldName"] or
+    // [{ field: "fieldName", sort: "desc" }] to ["-fieldName"]
+    return sortModelVerbose
+        .filter((item) => item.sort) // keep only items that have a sort defined
+        .map((item) => (item.sort === "desc" ? `-${item.field}` : item.field));
+}
+
+/**
+ * Convert compact sort array to verbose sort model
+ * Example:
+ * ["first_name", "-date_submitted"] =>
+ * [{ field: "first_name", sort: "asc" }, { field: "date_submitted", sort: "desc" }]
+ */
+export function sortModelFromCompactToVerboseStyle(sortModelCompact) {
+    return sortModelCompact.map((item) => {
+        if (item.startsWith("-")) {
+            return { field: item.slice(1), sort: "desc" };
+        } else {
+            return { field: item, sort: "asc" };
+        }
+    });
+}
