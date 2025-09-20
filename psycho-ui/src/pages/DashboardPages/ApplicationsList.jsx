@@ -299,45 +299,6 @@ const ApplicationsList = () => {
 
     const sortModelChangeRef = useRef("browser"); // user or browser
 
-    // Let's attach a custom field (sortModel) to apiRef, for custom use (handle multiple sort in column def)
-    // as we cannot directly set this field on the community DataGrid
-
-    // --- Sort effect ---
-    /*useEffect(() => {
-        const currentSortFromUrl = searchParams.get("sort_by") ?? [];
-        const compactSortModel = sortModelFromVerboseToCompactStyle(
-            Object.values(sortModel) // array like e.g ['first_name', '-date_submitted']
-        );
-        const isSortModelAndUrlOutOfSync = !isEqual(
-            currentSortFromUrl,
-            compactSortModel
-        );
-
-        console.log("Sort model is : ", sortModel);
-        console.log("Sort model in compact form is : ", compactSortModel);
-        console.log("Current sort from url is : ", currentSortFromUrl)  
-        console.log("Is browser navigation : ", isBrowserNavigation);
-        console.log(
-            "Is sort model and URL out of sync : ",
-            isSortModelAndUrlOutOfSync
-        );
-        // If it is not a back/forward navigation and the sort from url differs from the actual current one sync the url
-        if (isSortModelAndUrlOutOfSync && !isBrowserNavigation) {
-            setSearchParams(
-                (prevSearchParams) => {
-                    if (Object.values(sortModel).length === 0) {
-                        prevSearchParams.delete("sort_by");
-                    } else {
-                        prevSearchParams.set("sort_by", compactSortModel);
-                    }
-                    return prevSearchParams;
-                },
-                { replace: false }
-            );
-        }
-    }, [sortModel, setSearchParams, searchParams, apiRef]);
-    */
-
     useEffect(() => {
         const currentSortFromUrl = searchParams.getAll("sort_by") || []; // beware, if ?sort_by=last_name%2Cdate_submitted
         // => getAll returns ['last_name,date_submitted'], an array of one element ; in such a case need to split by ','
@@ -431,11 +392,9 @@ const ApplicationsList = () => {
         () => ({ status, degree, baccalaureate_series }),
         [status, degree, baccalaureate_series]
     );
-    console.log("1. Filters are : ", filters);
 
     // Sync URL with filter form state and vice-versa
     useEffect(() => {
-        console.log("Filters effect running ...");
         // Get current values from form and URL
         const currentFormValues = getValues();
 
@@ -446,14 +405,19 @@ const ApplicationsList = () => {
                 ([key]) => key in filtersInitialState
             )
         );
+        console.log("Filters from url : ", filtersFromUrl);
 
         // Active form values (only truthy ones matter for query params)
         const activeFilters = Object.fromEntries(
             Object.entries(currentFormValues).filter(([, v]) => v)
         );
 
+        console.log("Active filters : ", activeFilters);
+        console.log("Filters form state : ", getValues());
+
         // Check if form and URL are out of sync in terms of filters (should exclude sorting, pagination ...)
         const areFormAndUrlOutOfSync = !isEqual(activeFilters, filtersFromUrl);
+        console.log({ areFormAndUrlOutOfSync });
 
         if (areFormAndUrlOutOfSync) {
             // Determine the source of the change to prevent infinite loops
@@ -474,121 +438,43 @@ const ApplicationsList = () => {
             if (changeCameFromUrl) {
                 // URL changed via navigation → update form to match URL
                 reset({ ...filtersInitialState, ...filtersFromUrl });
-                console.log(
-                    "Form state updated from URL params (browser navigation)."
-                );
             } else if (changeCameFromForm) {
                 // Form changed by user → update URL to match form
-                debouncedSetSearchParams((prev) => ({
-                    ...prev, // to keep other query params (sort, page...)
-                    ...activeFilters,
-                }));
-                console.log(
-                    "URL params updated from form state (user interaction)."
-                );
+                setSearchParams((prev) => {
+                    const prevObj = Object.fromEntries(prev.entries());
+
+                    // Keep only unrelated query params (sort_by, page, etc.)
+                    const unrelated = Object.fromEntries(
+                        Object.entries(prevObj).filter(
+                            ([k]) => !(k in filtersInitialState)
+                        )
+                    );
+
+                    // Replace filter params completely with current active filters
+                    return new URLSearchParams({
+                        ...unrelated,
+                        ...activeFilters,
+                    });
+                });
             }
         }
 
         // Update the reference to track the current state for next comparison
         previousFormStateRef.current = getValues();
-    }, [searchParams, reset, getValues, debouncedSetSearchParams, filters]);
+    }, [
+        searchParams,
+        reset,
+        getValues,
+        debouncedSetSearchParams,
+        filters,
+        setSearchParams,
+    ]);
 
-    /*useEffect(() => {
-        console.log("Filters effect running ...");
-        const currentFormValues = getValues(); // or filters
-        const filtersFromUrl = Object.fromEntries(searchParams.entries());
-        // Active form values (only truthy ones matter for query params)
-        const activeFilters = Object.fromEntries(
-            Object.entries(currentFormValues).filter(([, v]) => v)
-        );
-
-        // If URL differs from form state, need to sync both
-        if (!isEqual(activeFilters, filtersFromUrl)) {
-            console.log("2. Active filters are : ", activeFilters);
-            // Only reset if the change didn't originate from the form itself (back/forward nav)
-            // (prevents infinite loops if form changes trigger URL update which then triggers form reset)
-            // 1. URL changes -> update form.
-            if (isEqual(previousFormStateRef.current, currentFormValues)) {
-                reset({ ...filtersInitialState, ...filtersFromUrl });
-                console.log("Form state updated from URL params.");
-            }
-            // And the change originates from the form itself (on filters click) : previousRef differs from current form state
-            // 2. Form changes -> update URL.
-            else {
-                debouncedSetSearchParams((prev) => ({
-                    ...prev,
-                    ...activeFilters,
-                })); // Debouncing avoids excessive URL updates during typing
-                console.log("URL params updated from form state.");
-            }
-        }
-        // Update the ref *after* all checks and potential updates to keep it in sync with current situation
-        previousFormStateRef.current = getValues();
-    }, [searchParams, reset, getValues, filters, debouncedSetSearchParams]);
-    */
-
-    /*// 1. Sync URL if form is changed by FORM interaction
-    useEffect(() => {
-        const filtersFromUrl = Object.fromEntries(searchParams.entries());
-        console.log("a. Filters from url : ", filtersFromUrl);
-        console.log("b. Active filters : ", activeFilters);
-
-        if (!isEqual(activeFilters, filtersFromUrl)) {
-            // url and form are not in sync
-            console.log(
-                "c. Active filters and url Filters are not equal, step 1 from setSearchParams"
-            );
-            console.log(
-                "d. Previous state from ref is : ",
-                previousFilterFormState.current
-            );
-            // Does the change originated from url navigation or form interaction
-            if (!isEqual(previousFilterFormState.current, filters)) {
-                console.log(
-                    "e. Previous state differs from filters, setting searchParams..."
-                );
-                //previousFilterFormState.current = cloneDeep(filters);
-                debouncedSetSearchParams(activeFilters);
-            }
-        }
-    }, [activeFilters, searchParams, setSearchParams]);
-
-    // 2. Sync form if url is changed by back/forth navigation
-    useEffect(() => {
-        const filtersFromUrl = Object.fromEntries(searchParams.entries());
-        const newValues = { ...filtersInitialState, ...filtersFromUrl };
-
-        console.log("1. Filters from url => : ", newValues);
-        console.log("2. Actual form state : ", getValues());
-        console.log(
-            "3. Previous state with useRef : ",
-            previousFilterFormState.current
-        );
-
-        if (!isEqual(getValues(), newValues)) {
-            console.log(
-                "4. Current form state differs from newValues, one step to reset"
-            );
-            if (isEqual(previousFilterFormState.current, filters))
-                console.log(
-                    "5. Previous state by ref is equal to filters => change from url, resetting..."
-                );
-            //previousFilterFormState.current = cloneDeep(newValues);
-            reset(newValues);
-        }
-    }, [searchParams, reset, getValues, filters]);
-
-    // 3. Update the ref AFTER either effect changes form state
-    useEffect(() => {
-        previousFilterFormState.current = getValues();
-    }, [filters, searchParams, getValues]);
-    */
+    console.log("Search string is : ", searchParams.toString());
 
     const { data, isLoading } = useApplications({
         queryParams: Object.fromEntries(searchParams.entries()),
     });
-
-    console.log("The pagination model is : ", paginationModel);
 
     // const { data, isLoading } = useApplications({
     //     filters,

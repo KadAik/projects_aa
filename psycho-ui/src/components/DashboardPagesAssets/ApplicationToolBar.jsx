@@ -25,8 +25,6 @@ const ApplicationToolBar = ({
 }) => {
     const activeFilters = Object.entries(filters).filter(([, value]) => value);
 
-    console.log("Active filters from Toolbar : ", activeFilters);
-
     const onResetSorts = () => setSortModel([]);
     const onClearFilters = () => clearFilters(filtersInitialState);
 
