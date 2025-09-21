@@ -8,3 +8,11 @@ export const applicationStatus = {
     Rejected: { label: "Rejetée", color: "error" },
     Incomplete: { label: "Incomplète", color: "error" },
 };
+
+export const sortableColumns = [
+    "first_name",
+    "last_name",
+    "date_submitted",
+    "status",
+    "baccalaureate_series",
+];

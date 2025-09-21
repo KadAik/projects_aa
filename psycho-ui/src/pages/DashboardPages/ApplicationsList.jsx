@@ -1,265 +1,153 @@
-import React, {
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
     DataGrid,
     GridActionsCellItem,
     gridClasses,
-    gridPageCountSelector,
     useGridApiRef,
-    useGridSelector,
 } from "@mui/x-data-grid";
-import {
-    alpha,
-    Badge,
-    Box,
-    IconButton,
-    Pagination,
-    Stack,
-    Typography,
-} from "@mui/material";
+import { alpha, Box, useTheme } from "@mui/material";
 
-import ApplicationSearchAndFilterBar from "../../components/DashboardPagesAssets/ApplicationSearchAndFilterBar";
-import { set, useForm, useWatch } from "react-hook-form";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import { useGridApiContext } from "@mui/x-data-grid";
 import styled from "@emotion/styled";
-import { blueGrey, lightBlue } from "@mui/material/colors";
-import ApplicationToolBar from "../../components/DashboardPagesAssets/ApplicationToolBar";
-import {
-    ApplicationDataGridContext,
-    useApplicationDataGridContext,
-} from "../../contexts/applicationDataGridContext";
+import ApplicationToolBar from "./Assets/ApplicationToolBar";
+import { ApplicationDataGridContext } from "../../contexts/applicationDataGridContext";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
-import {
-    Link,
-    replace,
-    useNavigate,
-    useNavigationType,
-    useSearchParams,
-} from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import GavelOutlinedIcon from "@mui/icons-material/GavelOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { useApplications } from "../../shared/psychoApi/hooks";
-import { debounce, isEqual } from "lodash";
-import { useIsBrowserNavigation } from "../../utils/hooks";
-import {
-    sortModelFromCompactToVerboseStyle,
-    sortModelFromVerboseToCompactStyle,
-} from "../../utils/utils";
 
-// Sort cycle order
-const cycle = ["asc", "desc", "null"];
+import { useFilterSync } from "../../utils/hooks/useFilterSync";
+import { useSortSync } from "../../utils/hooks/useSortSync";
+import { sortableColumns } from "../../shared/psychoApi/applicationConfig";
+import RenderHeader from "./Assets/RenderHeader";
+import ActionsPagination from "./Assets/ActionsPagination";
+import ApplicationSearchAndFilterBar from "./Assets/ApplicationSearchAndFilterBar";
 
-const filtersInitialState = {
+const initialFilterFormState = {
     status: "",
     degree: "",
     baccalaureate_series: "",
 };
 
-const syncSortModelFromUrl = ({
-    urlSortParamArray,
-    setSortModel,
-    setSortHistory,
-}) => {
-    if (urlSortParamArray.length === 0) {
-        //reset the sort
-        setSortModel({});
-        setSortHistory([]);
-        return;
-    }
-    const verboseSortModel =
-        sortModelFromCompactToVerboseStyle(urlSortParamArray);
-
-    const newSortModel = {};
-    const newSortHistory = verboseSortModel.map((sortItem) => {
-        newSortModel[sortItem.field] = sortItem;
-        return sortItem.field;
-    });
-
-    setSortModel(newSortModel);
-    setSortHistory(newSortHistory);
-};
-
-const syncUrlFromSortModel = ({ compactSortModel, setSearchParams }) => {
-    setSearchParams(
-        (prevSearchParams) => {
-            if (compactSortModel.length === 0) {
-                prevSearchParams.delete("sort_by");
-            } else {
-                prevSearchParams.set("sort_by", compactSortModel);
-            }
-            return prevSearchParams;
-        },
-        { replace: false }
-    );
-};
-
-const SortIcon = React.memo(function SortIcon({ field }) {
-    const { sortHistory = [], sortModel = {} } =
-        useApplicationDataGridContext();
-    const sort = sortModel[field]?.sort || "";
-    let position = sortHistory.length > 1 ? sortHistory.indexOf(field) + 1 : 0;
-    const active = Boolean(sort);
-
-    return (
-        <>
-            {active && sortHistory.length > 1 ?
-                <Badge badgeContent={position} color="secondary">
-                    <Box
-                        p={0.5}
-                        sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            borderRadius: "50%",
-                            cursor: "pointer",
-                            bgcolor: active ? "primary.light" : "transparent",
-                            color: active ? "#fff" : "transparent",
-                            transition: "all 0.2s ease",
-                            ":hover": {
-                                bgcolor: blueGrey[100],
-                                color: "#fff",
-                            },
-                            "&:hover .hoverIcon": {
-                                color: "#fff",
-                            },
-                        }}
-                    >
-                        {sort === "asc" ?
-                            <ArrowUpwardIcon sx={{ width: 16, height: 16 }} />
-                        : sort === "desc" ?
-                            <ArrowDownwardIcon sx={{ width: 16, height: 16 }} />
-                        :   <ArrowUpwardIcon
-                                className="hoverIcon"
-                                sx={{
-                                    width: 16,
-                                    height: 16,
-                                    color: "transparent",
-                                }}
-                            />
-                        }
-                    </Box>
-                </Badge>
-            :   <Box
-                    p={0.5}
-                    sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        borderRadius: "50%",
-                        cursor: "pointer",
-                        bgcolor: active ? "primary.light" : "transparent",
-                        color: active ? "#fff" : "transparent",
-                        transition: "all 0.2s ease",
-                        ":hover": {
-                            bgcolor: blueGrey[100],
-                            color: "#fff",
-                        },
-                        "&:hover .hoverIcon": {
-                            color: "#fff",
-                        },
-                    }}
-                >
-                    {sort === "asc" ?
-                        <ArrowUpwardIcon sx={{ width: 16, height: 16 }} />
-                    : sort === "desc" ?
-                        <ArrowDownwardIcon sx={{ width: 16, height: 16 }} />
-                    :   <ArrowUpwardIcon
-                            className="hoverIcon"
-                            sx={{
-                                width: 16,
-                                height: 16,
-                                color: "transparent",
-                            }}
-                        />
-                    }
-                </Box>
-            }
-        </>
-    );
-});
-
-function ActionsPagination({ page, onPageChange, className }) {
-    const apiRef = useGridApiContext();
-    const pageCount = useGridSelector(apiRef, gridPageCountSelector);
-    // DataGrid is 0-based page, but Pagination is 1-based
-    const handleChange = (event, newPageNumber) => {
-        onPageChange(event, newPageNumber - 1);
-    };
-    return (
-        <Pagination
-            count={pageCount}
-            className={className}
-            page={page + 1}
-            onChange={handleChange}
-            boundaryCount={2}
-            shape="rounded"
-            variant="outlined"
-            color="primary"
-            showFirstButton
-            showLastButton
-        />
-    );
-}
-
-const RenderHeader = React.memo(({ headerName, field }) => (
-    <Stack direction="row">
-        <Typography variant="body1" fontWeight="bold">
-            {headerName} &nbsp;
-        </Typography>
-        {sortableColumns.includes(field) && <SortIcon field={field} />}
-    </Stack>
-));
-
-const sortableColumns = [
-    "first_name",
-    "last_name",
-    "date_submitted",
-    "status",
-    "baccalaureate_series",
-];
-
-const ODD_OPACITY = 0.2;
+const ODD_OPACITY = 0.05;
+const EVEN_OPACITY = 0.02;
 
 const StripedDataGrid = styled(DataGrid)(({ theme }) => ({
-    [`& .${gridClasses.row}.even`]: {
-        backgroundColor: theme.palette.grey[100],
-        "&:hover": {
-            backgroundColor: alpha(theme.palette.primary.main, ODD_OPACITY),
-            "@media (hover: none)": {
-                backgroundColor: "transparent",
+    border: "none",
+    //borderRadius: "12px",
+    overflow: "hidden",
+    boxShadow: theme.shadows[2],
+
+    "& .MuiDataGrid-columnHeaders": {
+        backgroundColor: theme.palette.primary.main,
+
+        minHeight: "56px !important",
+        maxHeight: "56px !important",
+    },
+
+    "& .MuiDataGrid-columnHeader": {
+        backgroundColor: "transparent",
+        color: theme.palette.primary.contrastText,
+        fontWeight: 600,
+        fontSize: "0.875rem",
+        padding: "0 16px",
+    },
+
+    "& .MuiDataGrid-columnHeaderTitle": {
+        fontWeight: 600,
+        fontSize: "0.875rem",
+    },
+
+    "& .MuiDataGrid-columnHeaderTitleContainerContent": {
+        overflow: "visible",
+    },
+
+    "& .MuiDataGrid-columnSeparator": {
+        //display: "none",
+    },
+
+    "& .MuiDataGrid-cell": {
+        borderBottom: `1px solid ${theme.palette.divider}`,
+        padding: "12px 16px",
+        fontSize: "0.875rem",
+    },
+
+    "& .MuiDataGrid-row": {
+        "&:last-child": {
+            "& .MuiDataGrid-cell": {
+                borderBottom: "none",
             },
+        },
+    },
+
+    [`& .${gridClasses.row}.even`]: {
+        backgroundColor: alpha(theme.palette.primary.main, EVEN_OPACITY),
+        "&:hover": {
+            backgroundColor: alpha(theme.palette.primary.main, ODD_OPACITY * 3),
         },
         "&.Mui-selected": {
             backgroundColor: alpha(
                 theme.palette.primary.main,
-                ODD_OPACITY + theme.palette.action.selectedOpacity
+                ODD_OPACITY + 0.1
             ),
             "&:hover": {
                 backgroundColor: alpha(
                     theme.palette.primary.main,
-                    ODD_OPACITY +
-                        theme.palette.action.selectedOpacity +
-                        theme.palette.action.hoverOpacity
+                    ODD_OPACITY + 0.2
                 ),
-                // Reset on touch devices, it doesn't add specificity
-                "@media (hover: none)": {
-                    backgroundColor: alpha(
-                        theme.palette.primary.main,
-                        ODD_OPACITY + theme.palette.action.selectedOpacity
-                    ),
-                },
             },
         },
-        ...theme.applyStyles("dark", {
-            backgroundColor: theme.palette.grey[800],
-        }),
+    },
+
+    [`& .${gridClasses.row}.odd`]: {
+        backgroundColor: theme.palette.background.paper,
+        "&:hover": {
+            backgroundColor: alpha(theme.palette.primary.main, ODD_OPACITY * 2),
+        },
+        "&.Mui-selected": {
+            backgroundColor: alpha(theme.palette.primary.main, ODD_OPACITY),
+            "&:hover": {
+                backgroundColor: alpha(
+                    theme.palette.primary.main,
+                    ODD_OPACITY + 0.1
+                ),
+            },
+        },
+    },
+
+    "& .MuiDataGrid-virtualScroller": {
+        backgroundColor: theme.palette.background.default,
+    },
+
+    "& .MuiDataGrid-footerContainer": {
+        borderTop: `1px solid ${theme.palette.divider}`,
+        backgroundColor: theme.palette.background.paper,
+        borderBottomLeftRadius: "8px",
+        borderBottomRightRadius: "8px",
+    },
+
+    "& .MuiToolbar-root": {
+        padding: "16px",
+        backgroundColor: theme.palette.grey[50],
+        borderBottom: `1px solid ${theme.palette.divider}`,
+    },
+
+    // "& .MuiDataGrid-menuIcon button": {
+    //     color: theme.palette.primary.contrastText,
+    // },
+
+    "& .MuiDataGrid-sortIcon": {
+        display: "none",
+    },
+
+    "& .MuiDataGrid-actionsCell": {
+        gap: "4px",
+    },
+
+    "& .MuiDataGrid-iconButtonContainer": {
+        marginLeft: "4px",
     },
 }));
 
@@ -270,82 +158,16 @@ const ApplicationsList = () => {
     renderCount += 1;
     const renders = useRef(0);
     renders.current++;
+    console.log("ApplicationList component render count is : ", renderCount);
     useEffect(() => {
         console.log("Render #", renders.current);
     });
 
-    // Will be used to detect browser navigation (back/forward)
-    const isBrowserNavigation = useIsBrowserNavigation();
+    const theme = useTheme();
 
     const [searchParams, setSearchParams] = useSearchParams({});
-    const debouncedSetSearchParams = useCallback(
-        debounce((params) => {
-            setSearchParams(params, { replace: false });
-        }, 300),
-        []
-    );
-
-    console.log("ApplicationList component render count is : ", renderCount);
-    // For multiple fields sorting
-    const [ctrlPressed, setCtrlPressed] = useState(false);
 
     const apiRef = useGridApiRef();
-
-    // sortModel struct eg. : {first_name: {field: "first_name", sort: "asc"}, date_submitted: {field: "date_submitted", sort: "desc"}}
-    const [sortModel, setSortModel] = useState({}); // sortModel should be an array of objects, but using {}
-    // is just a workaround as useApplication is already getting an array
-
-    const [sortHistory, setSortHistory] = useState([]);
-
-    const sortModelChangeRef = useRef("browser"); // user or browser
-
-    useEffect(() => {
-        const currentSortFromUrl = searchParams.getAll("sort_by") || []; // beware, if ?sort_by=last_name%2Cdate_submitted
-        // => getAll returns ['last_name,date_submitted'], an array of one element ; in such a case need to split by ','
-        // in order to match the compactSortModel array.
-        const currentSortFromUrlArray =
-            (
-                currentSortFromUrl.length > 0 &&
-                currentSortFromUrl[0]?.includes(",")
-            ) ?
-                currentSortFromUrl[0].split(",")
-            :   currentSortFromUrl;
-
-        console.log("Current sort from url array : ", currentSortFromUrlArray);
-        const compactSortModel = sortModelFromVerboseToCompactStyle(
-            Object.values(sortModel)
-        ); // array like e.g ['first_name', '-date_submitted']
-        console.log("Current sort model in compact style : ", compactSortModel);
-
-        const areSortModelAndUrlOutOfSync = !isEqual(
-            currentSortFromUrlArray,
-            compactSortModel
-        );
-
-        console.log({ areSortModelAndUrlOutOfSync });
-
-        if (areSortModelAndUrlOutOfSync) {
-            // If the change came from the user (appyling a sort : sortModel changes) => update the url
-            const shouldUpdateUrl = sortModelChangeRef.current === "user";
-            // If the originated from the browser (back/forward navigation : searchParams changes) => update the sortModel
-            const shouldUpdateSortModel =
-                sortModelChangeRef.current === "browser";
-
-            console.log({ shouldUpdateSortModel, shouldUpdateUrl });
-
-            if (shouldUpdateSortModel) {
-                syncSortModelFromUrl({
-                    urlSortParamArray: currentSortFromUrlArray,
-                    setSortModel,
-                    setSortHistory,
-                });
-            } else if (shouldUpdateUrl) {
-                syncUrlFromSortModel({ compactSortModel, setSearchParams });
-            }
-
-            sortModelChangeRef.current = "browser";
-        }
-    }, [sortModel, setSearchParams, searchParams, isBrowserNavigation]);
 
     const [paginationModel, setPaginationModel] = useState({
         //Django drf pagination is 1-based index whereas Grid is 0-based
@@ -355,122 +177,18 @@ const ApplicationsList = () => {
 
     const [rowCount, setRowCount] = useState(0);
 
-    // if (apiRef.current) {
-    //     apiRef.current.sortModelObj = sortModel;
-    //     apiRef.current.sortHistory = sortHistory;
-    // }
-
     // Filtering
-
-    // Runs once on mount
-    const filtersInitialFromUrl = useMemo(
-        () =>
-            Object.fromEntries(
-                [...searchParams.entries()].filter(
-                    ([key]) => key in filtersInitialState
-                )
-            ),
-        []
-    );
-
-    const { register, reset, setValue, getValues, control } = useForm({
-        defaultValues: { ...filtersInitialState, ...filtersInitialFromUrl },
-    });
-
-    // Store the latest form state to detect if changes came from URL (back/forward nav) or form
-    const previousFormStateRef = useRef({
-        ...filtersInitialState,
-        ...filtersInitialFromUrl,
-    });
-
-    // The purpose is actually to rerender the component on form changes as we are not submitting, just reading values
-    // But we need some optimization to avoid rerender on object reference changes during render
-    const { status, degree, baccalaureate_series } = useWatch({ control });
-
-    // We stabilize filters
-    const filters = useMemo(
-        () => ({ status, degree, baccalaureate_series }),
-        [status, degree, baccalaureate_series]
-    );
-
-    // Sync URL with filter form state and vice-versa
-    useEffect(() => {
-        // Get current values from form and URL
-        const currentFormValues = getValues();
-
-        // Url may contains unrelated query params to filters like sort_by, page... so we filter them out
-        // by whitelisting only the ones we care about
-        const filtersFromUrl = Object.fromEntries(
-            [...searchParams.entries()].filter(
-                ([key]) => key in filtersInitialState
-            )
-        );
-        console.log("Filters from url : ", filtersFromUrl);
-
-        // Active form values (only truthy ones matter for query params)
-        const activeFilters = Object.fromEntries(
-            Object.entries(currentFormValues).filter(([, v]) => v)
-        );
-
-        console.log("Active filters : ", activeFilters);
-        console.log("Filters form state : ", getValues());
-
-        // Check if form and URL are out of sync in terms of filters (should exclude sorting, pagination ...)
-        const areFormAndUrlOutOfSync = !isEqual(activeFilters, filtersFromUrl);
-        console.log({ areFormAndUrlOutOfSync });
-
-        if (areFormAndUrlOutOfSync) {
-            // Determine the source of the change to prevent infinite loops
-
-            // Case 1: Change came from URL (browser navigation - back/forward) => should update the form
-            // If previous form state matches current form state, it means the user
-            // didn't change the form - the URL changed via navigation
-            const changeCameFromUrl = isEqual(
-                previousFormStateRef.current,
-                currentFormValues
-            ); // Is form state changed ?
-
-            // Case 2: Change came from form (user interaction) => should update the url
-            // If previous form state differs from current form state, it means
-            // the user changed the form values
-            const changeCameFromForm = !changeCameFromUrl;
-
-            if (changeCameFromUrl) {
-                // URL changed via navigation → update form to match URL
-                reset({ ...filtersInitialState, ...filtersFromUrl });
-            } else if (changeCameFromForm) {
-                // Form changed by user → update URL to match form
-                setSearchParams((prev) => {
-                    const prevObj = Object.fromEntries(prev.entries());
-
-                    // Keep only unrelated query params (sort_by, page, etc.)
-                    const unrelated = Object.fromEntries(
-                        Object.entries(prevObj).filter(
-                            ([k]) => !(k in filtersInitialState)
-                        )
-                    );
-
-                    // Replace filter params completely with current active filters
-                    return new URLSearchParams({
-                        ...unrelated,
-                        ...activeFilters,
-                    });
-                });
-            }
-        }
-
-        // Update the reference to track the current state for next comparison
-        previousFormStateRef.current = getValues();
-    }, [
+    const { filters, reset, setValue, register, control } = useFilterSync(
+        initialFilterFormState,
         searchParams,
-        reset,
-        getValues,
-        debouncedSetSearchParams,
-        filters,
-        setSearchParams,
-    ]);
+        setSearchParams
+    );
 
-    console.log("Search string is : ", searchParams.toString());
+    // Sorting
+    const { sortModel, sortHistory, handleSortModelChange } = useSortSync(
+        searchParams,
+        setSearchParams
+    );
 
     const { data, isLoading } = useApplications({
         queryParams: Object.fromEntries(searchParams.entries()),
@@ -491,88 +209,7 @@ const ApplicationsList = () => {
         );
     }, [data]);
 
-    useEffect(() => {
-        const handleKeyDown = (event) => {
-            if (event.key === "Control") {
-                setCtrlPressed(true);
-            }
-        };
-
-        const handleKeyUp = (event) => {
-            if (event.key === "Control") {
-                setCtrlPressed(false);
-            }
-        };
-
-        window.addEventListener("keydown", handleKeyDown);
-        window.addEventListener("keyup", handleKeyUp);
-
-        return () => {
-            window.removeEventListener("keydown", handleKeyDown);
-            window.removeEventListener("keyup", handleKeyUp);
-        };
-    }, []);
-
-    const handleSortModelChange = (newSortModel) => {
-        sortModelChangeRef.current = "user";
-        // We will be keeping sortModel as : {field: {field: fieldName, sort: asc|desc|null}, {...}}
-        // in order to facilitate handling (to avoid duplicates fields)
-        // Hence when encountering the same field the second time for reverse order, we can easily overwrite the previous.
-        if (!newSortModel.length) {
-            // empty array
-            // reset the sort
-            setSortModel({});
-            setSortHistory([]);
-            return;
-        }
-
-        const { field } = newSortModel[0]; // Mui DataGrid sends one item array;
-
-        // DataGrid community is stateless per field, thus when Ctrl+click back on first_name for example, the grid
-        // doesn’t remember it previously is asc/desc/null
-        // — it just starts its cycle again (asc → desc → null) as if it was a fresh column.
-        // Thus don't rely on DataGrid to get the correct next sort => manually cycle sort state based on previous value
-
-        // We are using custom logic to track sort cycle.
-
-        const prevSort = sortModel[field]?.sort ?? "null";
-        const nextSort = cycle[(cycle.indexOf(prevSort) + 1) % cycle.length];
-
-        // If Ctrl key is pressed when the event occurs, append to existing sort (multiple sorting)
-        if (ctrlPressed) {
-            setSortModel((prev) => {
-                // If the sort is "null", we reset the field (exclude it from sorts)
-                if (nextSort === "null") {
-                    const { [field]: _, ...rest } = prev;
-                    // Remove the field from the sortHistory table
-                    setSortHistory((prev) => {
-                        return prev.filter((f) => f !== field);
-                    });
-                    return rest;
-                }
-                // Remove the old occurences and add a new one in the sortHistory table
-                setSortHistory((prev) => {
-                    const withouField = prev.filter((f) => f !== field);
-                    return [...withouField, field];
-                });
-                // add or update the field
-                return {
-                    ...prev,
-                    [field]: { field, sort: nextSort },
-                };
-            });
-        } else {
-            // no Ctrl -> reset everything
-            if (nextSort === "null") {
-                setSortModel({});
-                setSortHistory([]);
-            } else {
-                setSortModel({ [field]: { field, sort: nextSort } });
-                setSortHistory([field]);
-            }
-        }
-    };
-
+    // Will be used to pass down some props to helpers or component that will be interacting with the data grid.
     const providerValue = useMemo(
         () => ({ apiRef, sortHistory, sortModel }),
         [apiRef, sortHistory, sortModel]
@@ -642,10 +279,16 @@ const ApplicationsList = () => {
             {
                 field: "date_submitted",
                 headerName: "Soumis le",
-                minWidth: 160,
+                minWidth: 165,
                 type: "date",
                 valueGetter: (value) => value && new Date(value),
-                valueFormatter: (value) => value && value.toDateString(),
+                valueFormatter: (value) =>
+                    value &&
+                    value.toLocaleDateString("fr-FR", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                    }),
             },
             {
                 field: "status",
@@ -681,6 +324,7 @@ const ApplicationsList = () => {
                     <RenderHeader
                         headerName={item.headerName}
                         field={item.field}
+                        sortable={sortableColumns.includes(item.field)}
                     />
                 ),
             })),
@@ -696,6 +340,7 @@ const ApplicationsList = () => {
             setFilterValue: setValue,
             setSearchParams,
         }),
+        //eslint-disable-next-line react-hooks/exhaustive-deps
         [sortHistory, filters, reset, setValue, setSearchParams]
     );
 
@@ -707,8 +352,7 @@ const ApplicationsList = () => {
             />
             <Box
                 sx={{
-                    width: "100%",
-                    height: "100%",
+                    backgroundColor: "background.default",
                 }}
             >
                 <StripedDataGrid
@@ -717,16 +361,20 @@ const ApplicationsList = () => {
                     // Docs : When using the API object outside the Data Grid components, you need to initialize it
                     // using the useGridApiRef hook. You can then pass it to the Data Grid's apiRef prop:
                     sx={{
-                        "& .MuiDataGrid-columnHeader": {
-                            backgroundColor: lightBlue[50],
+                        "& .MuiDataGrid-cell": {
+                            py: 1.5,
                         },
-                        "& .MuiDataGrid-columnHeader .MuiDataGrid-sortButton": {
-                            display: "none",
+                        "& .MuiDataGrid-row": {
+                            transition: "background-color 0.2s ease-in-out",
+                            "&:hover": {
+                                backgroundColor: alpha(
+                                    theme.palette.primary.main,
+                                    0.04
+                                ),
+                            },
                         },
-                        "& .MuiDataGrid-columnHeaderTitleContainerContent": {
-                            // To show the badge entirely
-                            overflow: "visible",
-                        },
+                        //height: "calc(100vh - 200px)",
+                        //width: "100%",
                     }}
                     columns={columns}
                     rows={data?.data?.results ?? []}
@@ -765,6 +413,21 @@ const ApplicationsList = () => {
                     onPaginationModelChange={setPaginationModel}
                     rowCount={rowCount}
                     pageSizeOptions={[5, 10, 20, 30, 100]}
+                    localeText={{
+                        noRowsLabel: "Aucune candidature trouvée",
+                        noResultsOverlayLabel: "Aucun résultat",
+                        errorOverlayDefaultLabel: "Une erreur est survenue.",
+                        toolbarColumns: "Colonnes",
+                        toolbarColumnsLabel: "Sélectionner les colonnes",
+                        toolbarFilters: "Filtres",
+                        toolbarFiltersLabel: "Afficher les filtres",
+                        toolbarFiltersTooltipHide: "Masquer les filtres",
+                        toolbarFiltersTooltipShow: "Afficher les filtres",
+                        toolbarQuickFilterPlaceholder: "Rechercher…",
+                        toolbarExport: "Exporter",
+                        toolbarExportLabel: "Exporter",
+                        toolbarExportCSV: "Télécharger en CSV",
+                    }}
                 />
             </Box>
         </ApplicationDataGridContext.Provider>
