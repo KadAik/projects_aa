@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-
 import { GridActionsCellItem, useGridApiRef } from "@mui/x-data-grid";
 import { alpha, Box, useTheme } from "@mui/material";
-
 import ApplicationToolBar from "./Assets/ApplicationToolBar";
 import { ApplicationDataGridContext } from "../../contexts/applicationDataGridContext";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
@@ -11,15 +9,14 @@ import { Link, useSearchParams } from "react-router-dom";
 import GavelOutlinedIcon from "@mui/icons-material/GavelOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { useApplications } from "../../shared/psychoApi/hooks";
-
-import { useFilterSync } from "../../utils/hooks/useFilterSync";
-import { useSortSync } from "../../utils/hooks/useSortSync";
+import { useFilter } from "../../utils/hooks/useFilter";
+import { useSort } from "../../utils/hooks/useSort";
 import { sortableColumns } from "../../shared/psychoApi/applicationConfig";
 import RenderHeader from "./Assets/RenderHeader";
 import ActionsPagination from "./Assets/ActionsPagination";
 import ApplicationSearchAndFilterBar from "./Assets/ApplicationSearchAndFilterBar";
 import StripedDataGrid from "./Assets/StripedDataGrid";
-import { isEqual, replace } from "lodash";
+import { usePagination } from "../../utils/hooks/usePagination";
 
 const initialFilterFormState = {
     status: "",
@@ -41,39 +38,19 @@ const ApplicationsList = () => {
 
     const theme = useTheme();
 
-    const [rowCount, setRowCount] = useState(0);
-
     const [searchParams, setSearchParams] = useSearchParams();
-
-    const [paginationModel, setPaginationModel] = useState(() => {
-        // DRF is 1-based whereas DataGrid is 0-based style pagination.
-        const pageFromUrl = searchParams.get("page");
-        const pageSizeFromUrl = searchParams.get("page_size");
-
-        return {
-            page: pageFromUrl ? Math.max(0, Number(pageFromUrl) - 1) : 0,
-            pageSize: pageSizeFromUrl ? Number(pageSizeFromUrl) : 5,
-        };
-    });
-
-    const paginationModelChangeOriginRef = useRef("server"); // server, browser or user. The server value is used for on initial mount only.
 
     const apiRef = useGridApiRef();
 
-    const handlePaginationModelChange = (newModel) => {
-        paginationModelChangeOriginRef.current = "user";
-        setPaginationModel(newModel);
-    };
-
     // Filtering
-    const { filters, reset, setValue, register, control } = useFilterSync(
+    const { filters, reset, setValue, register, control } = useFilter(
         initialFilterFormState,
         searchParams,
         setSearchParams
     );
 
     // Sorting
-    const { sortModel, sortHistory, handleSortModelChange } = useSortSync(
+    const { sortModel, sortHistory, handleSortModelChange } = useSort(
         searchParams,
         setSearchParams
     );
@@ -82,134 +59,13 @@ const ApplicationsList = () => {
         queryParams: Object.fromEntries(searchParams.entries()),
     });
 
-    const hasSyncedOncePaginationRef = useRef(false);
-
-    // On mount, we need to perform a one-time sync for the pagination
-    useEffect(() => {
-        // Only run this during the initial mount sync
-        if (paginationModelChangeOriginRef.current !== "server") return;
-
-        // Already did one-time sync → exit (guard because deps array includes data)
-        if (hasSyncedOncePaginationRef.current) return;
-
-        // Wait until data is loaded
-        if (!data) return;
-
-        // Current values from URL
-        const page = searchParams.get("page");
-        const pageSize = searchParams.get("page_size");
-
-        // If the server didn’t paginate or if all records fit in one page → skip
-        if (
-            !data?.data?.count ||
-            data?.data?.count <= paginationModel.pageSize
-        ) {
-            // If the server didn't paginate the response, we should remove pagination infos from the url if any
-            if (!page && !pageSize) return; // No need to further process if no pagination info
-
-            // Remove pagination info from URL
-            setSearchParams(
-                (prev) => {
-                    const next = new URLSearchParams(prev);
-                    next.delete("page");
-                    next.delete("page_size");
-                    return next;
-                },
-                { replace: true }
-            );
-
-            // Reset the pagination model as it is initialized from the url
-            setPaginationModel({
-                page: 0,
-                pageSize: 5,
-            });
-
-            // Mark the sync as done
-            hasSyncedOncePaginationRef.current = true;
-            paginationModelChangeOriginRef.current = "browser";
-            return;
-        }
-
-        // If the URL has no pagination info, inject it based on our model
-        if (!page || !pageSize) {
-            setSearchParams(
-                (prev) => {
-                    const next = new URLSearchParams(prev);
-
-                    // DataGrid is 0-based, DRF is 1-based → add +1 for URL
-                    next.set("page", (paginationModel.page + 1).toString());
-
-                    // Always trust the frontend model for pageSize
-                    next.set("page_size", paginationModel.pageSize.toString());
-
-                    return next;
-                },
-                { replace: true }
-            );
-        }
-
-        // Mark the sync as done
-        hasSyncedOncePaginationRef.current = true;
-
-        // From now on, pagination changes are considered to come from browser nav / user
-        paginationModelChangeOriginRef.current = "browser";
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [data]);
-
-    // Syncing pagination
-    // Syncing pagination
-    useEffect(() => {
-        if (!hasSyncedOncePaginationRef.current) return; // skip until mount sync is done
-        if (!data) return; // wait until data is loaded
-
-        // If the server didn't paginate or all records fit in one page
-        if (!data?.data?.count || data?.data?.count <= paginationModel.pageSize)
-            return; // no syncing needed
-
-        // Current pagination from url
-        const page =
-            searchParams.get("page") ?
-                Math.max(0, Number(searchParams.get("page")) - 1)
-            :   -1;
-        const pageSize =
-            searchParams.get("page_size") ?
-                Number(searchParams.get("page_size"))
-            :   paginationModel.pageSize;
-
-        const currentUrlPagination = { page, pageSize };
-
-        console.log({ currentUrlPagination, paginationModel });
-
-        // Are url and pagination model out of sync ?
-        if (currentUrlPagination.page !== paginationModel.page) {
-            if (paginationModelChangeOriginRef.current === "user") {
-                // User clicked DataGrid -> sync the URL
-                setSearchParams((prev) => {
-                    const next = new URLSearchParams(prev);
-                    next.set("page", (paginationModel.page + 1).toString());
-                    next.set("page_size", paginationModel.pageSize.toString());
-                    return next;
-                });
-            } else if (paginationModelChangeOriginRef.current === "browser") {
-                // Browser nav -> sync the model
-                setPaginationModel(currentUrlPagination);
-            }
-            paginationModelChangeOriginRef.current = "browser";
-        }
-    }, [paginationModel, searchParams, setSearchParams, data]);
-
-    useEffect(() => {
-        setRowCount((prev) => (data?.data?.count ? data?.data?.count : prev));
-    }, [data]);
-
-    // const { data, isLoading } = useApplications({
-    //     filters,
-    //     sort_by: sortModelFromVerboseToCompactStyle(Object.values(sortModel)),
-    //     pagination: {
-    //         page: paginationModel.page + 1,
-    //         pageSize: paginationModel.pageSize,
-    //     },
-    // });
+    // Pagination
+    const { paginationModel, handlePaginationModelChange, rowCount } =
+        usePagination({
+            data,
+            searchParams,
+            setSearchParams,
+        });
 
     // Will be used to pass down some props to helpers or component that will be interacting with the data grid.
     const providerValue = useMemo(
@@ -234,6 +90,7 @@ const ApplicationsList = () => {
                     ) + 1,
             },
             {
+                field: "actions",
                 type: "actions",
                 width: 70,
                 getActions: (params) => [
@@ -322,6 +179,7 @@ const ApplicationsList = () => {
         () =>
             columns_.map((item) => ({
                 ...item,
+                key: item.field, // React will complain about unique key in list if not provided (DataGrid uses it)
                 renderHeader: () => (
                     <RenderHeader
                         headerName={item.headerName}
@@ -385,7 +243,7 @@ const ApplicationsList = () => {
                     loading={isLoading}
                     initialState={{
                         pagination: {
-                            paginationModel: { page: 0, pageSize: 5 },
+                            paginationModel: paginationModel,
                         },
                     }}
                     sortingMode="server"
@@ -393,7 +251,6 @@ const ApplicationsList = () => {
                     sortingOrder={["asc", "desc", "null"]}
                     showColumnVerticalBorder
                     showToolbar
-                    //autoPageSize
                     slots={{
                         columnSortedAscendingIcon: null,
                         columnSortedDescendingIcon: null,

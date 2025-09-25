@@ -46,7 +46,7 @@ const syncUrlFromSortModel = ({ compactSortModel, setSearchParams }) => {
     );
 };
 
-export function useSortSync(searchParams, setSearchParams) {
+export function useSort(searchParams, setSearchParams) {
     // For multiple fields sorting
     const [ctrlPressed, setCtrlPressed] = useState(false);
     // sortModel struct eg. : {first_name: {field: "first_name", sort: "asc"}, date_submitted: {field: "date_submitted", sort: "desc"}}
