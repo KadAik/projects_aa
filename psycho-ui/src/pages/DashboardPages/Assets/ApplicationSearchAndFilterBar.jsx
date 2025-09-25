@@ -40,17 +40,6 @@ const baccalaureateSeries = [
     { value: "F", label: "Bac F" },
 ];
 
-function renderStatusValue(selected) {
-    if (!selected) {
-        return (
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                Tous les statuts
-            </Typography>
-        );
-    }
-    return selected;
-}
-
 function renderSelectValue(selected, placeholder) {
     if (!selected) {
         return (

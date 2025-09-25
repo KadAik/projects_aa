@@ -79,7 +79,7 @@ export function useSortSync(searchParams, setSearchParams) {
         };
     }, []);
 
-    // Syncing sortModel and Url.
+    // Sync sortModel and Url.
     useEffect(() => {
         const currentSortFromUrl = searchParams.getAll("sort_by") || []; // beware, if ?sort_by=last_name%2Cdate_submitted
         // => getAll returns ['last_name,date_submitted'], an array of one element ; in such a case need to split by ','

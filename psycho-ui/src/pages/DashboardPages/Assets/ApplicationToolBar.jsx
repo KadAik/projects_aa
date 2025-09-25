@@ -21,6 +21,7 @@ const ApplicationToolBar = ({
     clearFilters,
     setFilterValue,
     filters = {},
+    rowCount = 0,
     children, // right-side toolbar items
 }) => {
     const theme = useTheme();
@@ -105,6 +106,18 @@ const ApplicationToolBar = ({
                         Effacer filtres
                     </Button>
                 </ButtonGroup>
+
+                {/* Total count display */}
+                <Typography
+                    variant="subtitle2"
+                    sx={{
+                        color: "text.secondary",
+                        fontWeight: 600,
+                        whiteSpace: "nowrap",
+                    }}
+                >
+                    {rowCount} candidature{rowCount !== 1 ? "s" : ""}
+                </Typography>
 
                 {/* Sort/Filter counters */}
                 {(hasActiveSorts || hasActiveFilters) && (

@@ -14,6 +14,7 @@ import {
 import HistoryIcon from "@mui/icons-material/History";
 import { formatDate } from "../../utils/utils";
 import { grey } from "@mui/material/colors";
+import { applicationStatus } from "../../shared/psychoApi/applicationConfig";
 
 const statusHistorySample = [
     {
@@ -36,35 +37,16 @@ const statusHistorySample = [
     },
 ];
 
-export default function ApplicationStatusHistory({
+export default function ApplicationStatusHistoryMenu({
     statusHistory = statusHistorySample,
-    statusLabels,
-    statusColors,
+    anchorEl,
+    handleClose,
+    open,
 }) {
-    const [anchorEl, setAnchorEl] = useState(null);
-    const open = Boolean(anchorEl);
-
-    const handleOpen = (event) => setAnchorEl(event.currentTarget);
-    const handleClose = () => setAnchorEl(null);
-
     return (
         <Paper elevation={0}>
             {statusHistory.length > 0 ?
                 <>
-                    <Tooltip title="Voir l'historique des statuts">
-                        <IconButton
-                            size="small"
-                            onClick={handleOpen}
-                            aria-controls={
-                                open ? "status-history-menu" : undefined
-                            }
-                            aria-haspopup="true"
-                            aria-expanded={open ? "true" : undefined}
-                        >
-                            <HistoryIcon fontSize="small" color="primary" />
-                        </IconButton>
-                    </Tooltip>
-
                     <Menu
                         id="status-history-menu"
                         anchorEl={anchorEl}
@@ -90,14 +72,14 @@ export default function ApplicationStatusHistory({
                                         <Chip
                                             size="small"
                                             label={
-                                                statusLabels[
+                                                applicationStatus[
                                                     change.new_status
-                                                ] || change.new_status
+                                                ]?.label || change.new_status
                                             }
                                             color={
-                                                statusColors[
+                                                applicationStatus[
                                                     change.new_status
-                                                ] || "default"
+                                                ]?.color || "default"
                                             }
                                             sx={{ mr: 1 }}
                                         />

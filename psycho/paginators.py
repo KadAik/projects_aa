@@ -22,6 +22,9 @@ class SafePageNumberPagination(PageNumberPagination):
                 "count": 0,
                 "next": None,
                 "previous": None,
+                "page_size": 0,
                 "results": []
             })
-        return super().get_paginated_response(data)
+        paginated_response = super().get_paginated_response(data)
+        paginated_response.data['page_size'] = self.get_page_size(self.request)
+        return paginated_response

@@ -89,17 +89,21 @@ export function useFilterSync(
                 setSearchParams((prev) => {
                     const prevObj = Object.fromEntries(prev.entries());
 
-                    // Keep only unrelated query params (sort_by, page, etc.)
+                    // Keep only unrelated query params (sort_by,  etc.)
                     const unrelated = Object.fromEntries(
                         Object.entries(prevObj).filter(
-                            ([k]) => !(k in initialFilterFormState)
+                            // keep unrelated but drop pagination when filters change
+                            ([k]) =>
+                                !(k in initialFilterFormState) &&
+                                k !== "page" &&
+                                k !== "page_size"
                         )
                     );
 
                     // Replace filter params completely with current active filters
                     return new URLSearchParams({
-                        ...unrelated,
                         ...activeFilters,
+                        ...unrelated,
                     });
                 });
             }

@@ -9,7 +9,6 @@ import Applications from "./pages/Applications";
 import ApplicationForm from "./components/ApplicationForm";
 import ErrorNotFound from "./pages/ErrorNotFound";
 import Navigation from "./components/Navigation";
-import ApplicationStatus from "./pages/ApplicationStatus";
 import ManagementLayout from "./layouts/ManagementLayout";
 import Dashboard from "./pages/DashboardPages/Dashboard";
 import ApplicationsManager from "./pages/DashboardPages/ApplicationsManager";
@@ -18,7 +17,8 @@ import ApplicantProfileEditForm from "./pages/DashboardPages/ApplicantProfileEdi
 import ApplicationsList from "./pages/DashboardPages/ApplicationsList";
 import ApplicantsManager from "./pages/DashboardPages/ApplicantsManager";
 import ApplicationDetails from "./pages/DashboardPages/ApplicationDetails";
-import ApplicationStatusHistory from "./pages/DashboardPages/ApplicationStatusHistory";
+import ApplicationStatusHistoryMenu from "./pages/DashboardPages/ApplicationStatusHistoryMenu";
+import ApplicationReview from "./pages/DashboardPages/Assets/ApplicationReview";
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -53,7 +53,7 @@ const router = createBrowserRouter(
                         element={<ApplicationDetails />}
                     />
                 </Route>
-                <Route path="edit" element={<ApplicationStatusHistory />} />
+                <Route path="edit" element={<ApplicationReview />} />
             </Route>
         </>
     )

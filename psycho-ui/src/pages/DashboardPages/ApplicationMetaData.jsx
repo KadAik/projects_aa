@@ -17,9 +17,11 @@ import {
     Update,
     Link as LinkIcon,
 } from "@mui/icons-material";
+import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
 import { useState } from "react";
 import { applicationStatus } from "../../shared/psychoApi/applicationConfig";
 import { formatDate } from "../../utils/utils";
+import ApplicationStatusHistoryMenu from "./ApplicationStatusHistoryMenu";
 
 const ApplicationMetaData = ({ application, isLoading = false }) => {
     const theme = useTheme();
@@ -30,6 +32,12 @@ const ApplicationMetaData = ({ application, isLoading = false }) => {
         setCopiedField(field);
         setTimeout(() => setCopiedField(null), 1500);
     };
+
+    const [anchorEl, setAnchorEl] = useState(null);
+    const statusHistoryMenuOpen = Boolean(anchorEl);
+
+    const handleStatusMenuOpen = (event) => setAnchorEl(event.currentTarget);
+    const handleStatusMenuClose = () => setAnchorEl(null);
 
     return (
         <Paper elevation={2} sx={{ p: 3, mb: 3 }} component="section">
@@ -158,7 +166,23 @@ const ApplicationMetaData = ({ application, isLoading = false }) => {
                     >
                         <Typography variant="subtitle2" color="text.secondary">
                             Statut:
+                            <Tooltip title="Visualiser l'historique des statuts">
+                                <IconButton
+                                    size="small"
+                                    onClick={handleStatusMenuOpen}
+                                >
+                                    <HistoryOutlinedIcon
+                                        fontSize="small"
+                                        color="primary"
+                                    />
+                                </IconButton>
+                            </Tooltip>
                         </Typography>
+                        <ApplicationStatusHistoryMenu
+                            anchorEl={anchorEl}
+                            handleClose={handleStatusMenuClose}
+                            open={statusHistoryMenuOpen}
+                        />
                     </Box>
                     {isLoading ?
                         <Skeleton variant="rounded" width={100} height={30} />
