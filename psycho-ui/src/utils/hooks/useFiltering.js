@@ -2,7 +2,7 @@ import { isEqual } from "lodash";
 import { useEffect, useMemo, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
-export function useFilter(
+export function useFiltering(
     initialFilterFormState,
     searchParams,
     setSearchParams

@@ -9,8 +9,8 @@ import { Link, useSearchParams } from "react-router-dom";
 import GavelOutlinedIcon from "@mui/icons-material/GavelOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import { useApplications } from "../../shared/psychoApi/hooks";
-import { useFilter } from "../../utils/hooks/useFilter";
-import { useSort } from "../../utils/hooks/useSort";
+import { useFiltering } from "../../utils/hooks/useFiltering";
+import { useSorting } from "../../utils/hooks/useSorting";
 import { sortableColumns } from "../../shared/psychoApi/applicationConfig";
 import RenderHeader from "./Assets/RenderHeader";
 import ActionsPagination from "./Assets/ActionsPagination";
@@ -43,14 +43,14 @@ const ApplicationsList = () => {
     const apiRef = useGridApiRef();
 
     // Filtering
-    const { filters, reset, setValue, register, control } = useFilter(
+    const { filters, reset, setValue, register, control } = useFiltering(
         initialFilterFormState,
         searchParams,
         setSearchParams
     );
 
     // Sorting
-    const { sortModel, sortHistory, handleSortModelChange } = useSort(
+    const { sortModel, sortHistory, handleSortModelChange } = useSorting(
         searchParams,
         setSearchParams
     );
