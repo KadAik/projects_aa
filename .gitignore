@@ -6,11 +6,20 @@
 *.vsdx
 front
 
-# Node modules #
-################
-node_modules/
 
 # Datatbases #
-##############
+# ---------- #
 *.sql
 *.sqlite
+*.sqlite3
+
+
+# Configurations #
+# -------------- #
+.env
+
+# Byte-compiled / optimized / DLL files
+# ----------------------------------- #
+__pycache__/
+*.py[cod]
+*$py.class

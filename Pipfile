@@ -11,6 +11,7 @@ django-debug-toolbar = "*"
 django-cors-headers = "*"
 black = "*"
 django-simple-history = "*"
+python-decouple = "*"
 
 [dev-packages]
 
