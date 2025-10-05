@@ -1,0 +1,11 @@
+{
+    "workbench.tree.indent": 15,
+    "workbench.editor.highlightModifiedTabs": true,
+    "explorer.compactFolders": false,
+    "github.copilot.enable": {
+        "*": true,
+        "plaintext": false,
+        "markdown": false,
+        "scminput": false
+    }
+}

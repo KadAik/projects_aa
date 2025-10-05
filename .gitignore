@@ -1,0 +1,16 @@
+# Divers #
+############
+*.doc
+*.docx
+*.vsd
+*.vsdx
+front
+
+# Node modules #
+################
+node_modules/
+
+# Datatbases #
+##############
+*.sql
+*.sqlite
