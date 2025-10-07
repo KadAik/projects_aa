@@ -12,6 +12,8 @@ django-cors-headers = "*"
 black = "*"
 django-simple-history = "*"
 python-decouple = "*"
+daphne = "*"
+psycopg = "*"
 
 [dev-packages]
 

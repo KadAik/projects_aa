@@ -1,13 +1,15 @@
 import os
 from decouple import config
+from decouple import Csv
 from .base import *
 
 DEBUG = False
 
 SECRET_KEY = config('DJANGO_SECRET_KEY')
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=list, default=['localhost'])
-CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', cast=list, default=['localhost'])
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv(), default=['127.0.0.1', 'localhost'])
+
+CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', cast=Csv(), default=['127.0.0.1', 'localhost'])
 
 # Production database
 DATABASES = {
