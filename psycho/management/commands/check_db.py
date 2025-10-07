@@ -1,3 +1,4 @@
+import os
 from django.core.management.base import BaseCommand
 from django.db import connections
 from django.utils.connection import ConnectionDoesNotExist
@@ -7,6 +8,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 class Command(BaseCommand):
     help = "Check if the configured database(s) are reachable and correctly configured."
+    
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -18,6 +20,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         alias = options["alias"]
+
+        self.stdout.write(f"Django settings module: {os.environ['DJANGO_SETTINGS_MODULE']}")
 
         self.stdout.write(f"Checking database connection for alias: '{alias}'...")
 
@@ -46,7 +50,7 @@ class Command(BaseCommand):
             self.stderr.write(self.style.ERROR(f"Improper configuration: {e}"))
             self.exitcode = 1
         except OperationalError as e:
-            self.stderr.write(self.style.ERROR(f"Database unreachable: {e}"))
+            self.stderr.write(self.style.ERROR(f"Database server error: {e}"))
             self.exitcode = 1
         except Exception as e:
             self.stderr.write(self.style.ERROR(f"Unexpected error: {e}"))

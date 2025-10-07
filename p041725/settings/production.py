@@ -23,3 +23,6 @@ DATABASES = {
         'CONN_HEALTH_CHECKS': True
     }
 }
+
+# Base location from which static files will be served (URL to refer to static files)
+STATIC_URL = config('STATIC_URL', default='static/')
