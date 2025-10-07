@@ -1,10 +1,11 @@
+import os
 from .base import *
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-h0z$5-+(=x@&s-#xo!2qyi1*$fl0tcq+6-@+v4f+7d1q+$+n&5'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', default='django-insecure-h0z$5-+(=x@&s-#xo!2qyi1*$fl0tcq+6-@+v4f+7d1q+$+n&5')
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 CORS_ORIGIN_ALLOW_ALL = True
