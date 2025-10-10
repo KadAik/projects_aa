@@ -13,7 +13,7 @@ black = "*"
 django-simple-history = "*"
 python-decouple = "*"
 daphne = "*"
-psycopg = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 
