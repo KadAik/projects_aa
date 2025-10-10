@@ -18,7 +18,7 @@ jobs:
         env:
             DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
             DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-            DOCKER_REPO: kad-psycho
+            DOCKER_REPO: psycho-back-tests
             GITHUB_SHA: ${{ github.sha }}
             IMAGE_NAME: psycho-back-test
 
@@ -44,5 +44,5 @@ jobs:
             - name: Push the image to Docker Hub
               run: |
                   SHORT_SHA=${GITHUB_SHA::7}
-                  docker tag ${IMAGE_NAME}:$SHORT_SHA ${DOCKER_USERNAME}/${DOCKER_REPO}/${IMAGE_NAME}:$SHORT_SHA
-                  docker push ${DOCKER_USERNAME}/${DOCKER_REPO}/${IMAGE_NAME}:$SHORT_SHA
+                  docker tag ${IMAGE_NAME}:$SHORT_SHA ${DOCKER_USERNAME}/${DOCKER_REPO}:$SHORT_SHA
+                  docker push ${DOCKER_USERNAME}/${DOCKER_REPO}:$SHORT_SHA
