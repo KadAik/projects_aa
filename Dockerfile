@@ -16,5 +16,8 @@ EXPOSE 8000
 # Set environment variables
 ENV DJANGO_SETTINGS_MODULE=p041725.settings.production
 
+# Collect static files (if any)
+RUN python manage.py collectstatic --noinput
+
 # Launching the application (CMD execute the container : CMD is to tell the container which command it should run when it is started)
 CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "p041725.asgi:application"]
