@@ -1,0 +1,49 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "test" ]
+  pull_request:
+    branches: [ "test" ]
+    types: 
+      - closed
+
+jobs:
+  build:
+    # Run this job only when a PR is merged or on push events
+    if: github.event.pull_request.merged == true || github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    # Define environment variables for the whole job
+    env:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      GITHUB_SHA: ${{ github.sha }}
+      IMAGE_NAME: psycho-back-test
+
+    steps:
+      - name: Check out the test branch
+        uses: actions/checkout@v4
+        with:
+          ref: test
+
+      - name: Build the Docker test image
+        run: |
+          SHORT_SHA=${GITHUB_SHA::7}
+          docker build . \
+            --file Dockerfile \
+            --tag ${IMAGE_NAME}:$SHORT_SHA
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      - name: Push the image to Docker Hub
+        run: |
+          SHORT_SHA=${GITHUB_SHA::7}
+          docker tag ${IMAGE_NAME}:$SHORT_SHA ${DOCKER_USERNAME}/${IMAGE_NAME}:$SHORT_SHA
+          docker push ${DOCKER_USERNAME}/${IMAGE_NAME}:$SHORT_SHA
+
+      
