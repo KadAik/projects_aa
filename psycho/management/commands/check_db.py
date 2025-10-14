@@ -28,7 +28,7 @@ class Command(BaseCommand):
             conn = connections[alias]
         except ConnectionDoesNotExist as e:
             self.stderr.write(self.style.ERROR(f"Connection '{alias}' does not exist: {e}"))
-            self.exit(1)
+            raise SystemExit(1)
 
         try:
             conn.ensure_connection()
@@ -40,20 +40,20 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f"✅ Database '{alias}' is reachable and healthy."))
                 self.stdout.write(f"DB ENGINE: {conn.settings_dict['ENGINE']}")
                 self.stdout.write(f"DB Vendor: {conn.vendor}")
-                self.exit(0)
+                return
             else:
                 self.stderr.write(self.style.ERROR(f"⚠️ Unexpected query result: {result}"))
-                self.exit(1)
+                raise SystemExit(1)
 
         except ImproperlyConfigured as e:
             self.stderr.write(self.style.ERROR(f"Improper configuration: {e}"))
-            self.exit(1)
+            raise SystemExit(1)
         except OperationalError as e:
             self.stderr.write(self.style.ERROR(f"Database server error: {e}"))
-            self.exit(1)
+            raise SystemExit(1)
         except Exception as e:
             self.stderr.write(self.style.ERROR(f"Unexpected error: {e}"))
-            self.exit(1)
+            raise SystemExit(1)
         finally:
             try:
                 if conn.connection:
