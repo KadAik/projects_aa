@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 set -e
 
@@ -10,4 +10,4 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
 EOSQL
 
 echo "Database initialized."
-echo "User psycho_app created with access to database $POSTGRES_DB."
+echo "User psycho_app created with access to database $POSTGRES_DB." 
