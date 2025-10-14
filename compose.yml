@@ -9,7 +9,7 @@ services:
       - .env
     volumes:
       - type: bind
-        source: ./docker-entrypoint-initdb.d
+        source: ./postgres-init
         target: /docker-entrypoint-initdb.d
         read_only: true
       - db-data:/var/lib/postgresql/data
@@ -17,7 +17,7 @@ services:
       - psycho-backend-network
 
   back:
-    image: kadolphe/psycho-back-tests:bcd6cb0
+    image: kadolphe/psycho-back-tests:bac4abb
     depends_on:
       db:
         condition: service_healthy
