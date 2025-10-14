@@ -4,9 +4,10 @@
 set -e
 
 # Wait for the database to be ready before continuing
+echo "Waiting for the database to be ready..."
 MAX_RETRIES=30
 COUNTER=0
-until python manage.py check_db 2>/dev/null; do
+until python manage.py check_db; do
   COUNTER=$((COUNTER+1))
   if [ $COUNTER -ge $MAX_RETRIES ]; then
     echo "Database not ready after $MAX_RETRIES attempts. Exiting."

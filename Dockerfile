@@ -16,9 +16,6 @@ COPY . .
 # Network port the container will listen on
 EXPOSE 8000
 
-# Set environment variables
-ENV DJANGO_SETTINGS_MODULE=p041725.settings.production
-
 # Make entrypoint script executable
 RUN chmod +x /usr/src/app/docker-entrypoint.sh
 
