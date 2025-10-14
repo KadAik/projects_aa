@@ -8,7 +8,6 @@ from django.core.exceptions import ImproperlyConfigured
 
 class Command(BaseCommand):
     help = "Check if the configured database(s) are reachable and correctly configured."
-    
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -20,17 +19,16 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         alias = options["alias"]
+        settings_module = os.environ.get("DJANGO_SETTINGS_MODULE", "⚠️ Not Set")
 
-        self.stdout.write(f"Django settings module: {os.environ['DJANGO_SETTINGS_MODULE']}")
-
+        self.stdout.write(f"Django settings module: {settings_module}")
         self.stdout.write(f"Checking database connection for alias: '{alias}'...")
 
         try:
             conn = connections[alias]
         except ConnectionDoesNotExist as e:
-            self.stderr.write(self.style.ERROR(f"Connection {alias} does not exist: {e}"))
-            self.exitcode = 1
-            return
+            self.stderr.write(self.style.ERROR(f"Connection '{alias}' does not exist: {e}"))
+            self.exit(1)
 
         try:
             conn.ensure_connection()
@@ -41,24 +39,24 @@ class Command(BaseCommand):
             if result == (1,):
                 self.stdout.write(self.style.SUCCESS(f"✅ Database '{alias}' is reachable and healthy."))
                 self.stdout.write(f"DB ENGINE: {conn.settings_dict['ENGINE']}")
-                self.exitcode = 0
+                self.stdout.write(f"DB Vendor: {conn.vendor}")
+                self.exit(0)
             else:
                 self.stderr.write(self.style.ERROR(f"⚠️ Unexpected query result: {result}"))
-                self.exitcode = 1
+                self.exit(1)
 
         except ImproperlyConfigured as e:
             self.stderr.write(self.style.ERROR(f"Improper configuration: {e}"))
-            self.exitcode = 1
+            self.exit(1)
         except OperationalError as e:
             self.stderr.write(self.style.ERROR(f"Database server error: {e}"))
-            self.exitcode = 1
+            self.exit(1)
         except Exception as e:
             self.stderr.write(self.style.ERROR(f"Unexpected error: {e}"))
-            self.exitcode = 1
+            self.exit(1)
         finally:
             try:
                 if conn.connection:
                     conn.close()
             except Exception as e:
-                self.stderr.write(self.style.ERROR(f"⚠️ Error failed to close connection while exiting: {e}"))
-                
+                self.stderr.write(self.style.WARNING(f"⚠️ Error closing connection: {e}"))
