@@ -16,20 +16,30 @@ services:
     networks:
       - psycho-backend-network
 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 0s
+
   back:
-    image: kadolphe/psycho-back-tests:bac4abb
+    image: kadolphe/psycho-back-tests:latest
     depends_on:
       db:
         condition: service_healthy
-    volumes:
-      - type: bind
-        source: .env
-        target: /usr/src/app/.env
-        read_only: true
+    env_file:
+      - .env
     networks:
       - psycho-backend-network
     ports:
       - "8000:8000"
+    healthcheck:
+      test: curl -f http://localhost:8000/ || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 volumes:
   db-data:
