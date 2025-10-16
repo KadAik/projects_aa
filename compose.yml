@@ -14,7 +14,7 @@ services:
         read_only: true
       - db-data:/var/lib/postgresql/data
     networks:
-      - psycho-backend-network
+      - psycho-db-network
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} || exit 1"]
@@ -30,22 +30,56 @@ services:
         condition: service_healthy
     env_file:
       - .env
+    environment:
+    - ALLOWED_HOSTS=localhost,127.0.0.1,psycho.com,www.psycho.com
+    - CORS_ALLOWED_ORIGINS=http://localhost,http://127.0.0.1,http://psycho.com,http://www.psycho.com,https://psycho.com,https://www.psycho.com
     networks:
-      - psycho-backend-network
-    ports:
-      - "8000:8000"
+      - psycho-back-network
+      - psycho-db-network
     healthcheck:
-      test: curl -f http://localhost:8000/ || exit 1
+      test: python -c 'import urllib.request; urllib.request.urlopen("http://localhost:8000")' || exit 1
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
+
+  front:
+    image: kadolphe/psycho-front-tests:latest
+    restart: always
+    depends_on:
+      back:
+        condition: service_healthy
+    networks:
+      - psycho-front-network
+    healthcheck:
+      test: curl -f http://localhost:80/ || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  nginx:
+    image: nginx:latest
+    restart: always
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      back:
+        condition: service_healthy
+      front:
+        condition: service_healthy
+    networks:
+      - psycho-back-network
+      - psycho-front-network
+    ports:
+      - "80:80"
 
 volumes:
   db-data:
     driver: local
 
 networks:
-  psycho-backend-network:
-    driver: bridge
+  psycho-front-network:
+  psycho-back-network:
+  psycho-db-network:
 
