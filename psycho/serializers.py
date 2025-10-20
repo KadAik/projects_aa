@@ -2,10 +2,14 @@ from django.db import transaction
 from rest_framework import serializers
 
 from .models import (
+    CompositionCentre,
+    Degree,
     User,
     AdminProfile,
     ApplicantProfile,
-    Application, University, ApplicationStatusHistory
+    Application,
+    University,
+    ApplicationStatusHistory,
 )
 
 
@@ -16,36 +20,37 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'first_name', 'last_name']
+        fields = ["username", "email", "first_name", "last_name"]
 
 
 class AdminProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for the AdminProfile model.
     """
+
     url = serializers.HyperlinkedIdentityField(
-        view_name='psycho:adminprofile-detail',
+        view_name="psycho:adminprofile-detail",
         read_only=True,
     )
 
-    user_id = serializers.PrimaryKeyRelatedField(source='user', read_only=True)
+    user_id = serializers.PrimaryKeyRelatedField(source="user", read_only=True)
 
     username = serializers.CharField(
-        source='user',  # Not user.username to prevent NoneType error ; then to_representation will handle it
+        source="user",  # Not user.username to prevent NoneType error ; then to_representation will handle it
         error_messages={
-            'required': 'Username is required.',
-            'blank': 'Username cannot be blank.',
-        }
+            "required": "Username is required.",
+            "blank": "Username cannot be blank.",
+        },
     )
 
     password = serializers.CharField(
         write_only=True,
-        style={'input_type': 'password'},
+        style={"input_type": "password"},
         required=False,
         allow_blank=True,
         error_messages={
-            'blank': 'Password cannot be blank.',
-        }
+            "blank": "Password cannot be blank.",
+        },
     )
 
     class Meta:
@@ -63,22 +68,16 @@ class AdminProfileSerializer(serializers.ModelSerializer):
             "phone",
             "date_created",
             "date_updated",
-
         ]
 
-        read_only_fields = [
-            "admin_id",
-            "user_id",
-            "date_registered",
-            "date_updated"
-        ]
+        read_only_fields = ["admin_id", "user_id", "date_registered", "date_updated"]
 
     def create(self, validated_data):
         """
         Create a new user while creating an admin profile.
         """
-        username = validated_data.pop('username', None)
-        password = validated_data.pop('password', None)
+        username = validated_data.pop("username", None)
+        password = validated_data.pop("password", None)
 
         with transaction.atomic():
             admin_profile = AdminProfile.objects.create(**validated_data)
@@ -101,17 +100,28 @@ class AdminProfileSerializer(serializers.ModelSerializer):
         print("Updating AdminProfile with data:", validated_data)
         with transaction.atomic():
             user = instance.user
-            user_data = validated_data.pop('user', {})
+            user_data = validated_data.pop("user", {})
 
-            username = user_data.get('username', None)
-            email = user_data.get('email', None)
+            username = user_data.get("username", None)
+            email = user_data.get("email", None)
 
-            if username and username != user.username and User.objects.filter(username=username).exclude(
-                    pk=user.pk).exists():
-                raise serializers.ValidationError({"username": "This username is already taken."})
+            if (
+                username
+                and username != user.username
+                and User.objects.filter(username=username).exclude(pk=user.pk).exists()
+            ):
+                raise serializers.ValidationError(
+                    {"username": "This username is already taken."}
+                )
 
-            if email and email != user.email and User.objects.filter(email=email).exclude(pk=user.pk).exists():
-                raise serializers.ValidationError({"email": "This email is already taken."})
+            if (
+                email
+                and email != user.email
+                and User.objects.filter(email=email).exclude(pk=user.pk).exists()
+            ):
+                raise serializers.ValidationError(
+                    {"email": "This email is already taken."}
+                )
 
             if username:
                 user.username = username
@@ -121,7 +131,7 @@ class AdminProfileSerializer(serializers.ModelSerializer):
             user.save()
 
             for field in self.Meta.fields:
-                if field in validated_data and field != 'user':
+                if field in validated_data and field != "user":
                     setattr(instance, field, validated_data[field])
             instance.save()
 
@@ -136,7 +146,7 @@ class AdminProfileSerializer(serializers.ModelSerializer):
         username = instance.user.username if instance.user else None
 
         if username:
-            rep['username'] = username
+            rep["username"] = username
 
         return rep
 
@@ -145,10 +155,12 @@ class AdminProfileSerializer(serializers.ModelSerializer):
         Tranform the user key in the validated_data into a dictionnary containing the username.
         """
         rep = super().to_internal_value(data)
-        if 'user' in rep and isinstance(rep['user'], str):
+        if "user" in rep and isinstance(rep["user"], str):
             # If user is a string, assume it's the username
-            rep['user'] = {'username': rep['user']}
-        rep['user']['password'] = rep.pop('password', None)  # Move password to user dict if exists
+            rep["user"] = {"username": rep["user"]}
+        rep["user"]["password"] = rep.pop(
+            "password", None
+        )  # Move password to user dict if exists
         return rep
 
 
@@ -165,30 +177,43 @@ class UniversitySerializer(serializers.ModelSerializer):
         """
         If the university already exists, return it.
         """
-        university_name = validated_data.get('name', None)
+        university_name = validated_data.get("name", None)
         if university_name:
             university, _ = University.objects.get_or_create(**validated_data)
         else:
-            raise serializers.ValidationError('A university name is required')
+            raise serializers.ValidationError("A university name is required")
         return university
+
+
+class DegreeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Degree
+        fields = "__all__"
+
+
+class CompositionCentreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CompositionCentre
+        fields = "__all__"
 
 
 class ApplicationStatusHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = ApplicationStatusHistory
-        fields = '__all__'
+        fields = "__all__"
 
 
 class ApplicantProfileSerializer(serializers.ModelSerializer):
     """
     Serializer for the Applicant model.
     """
+
     url = serializers.HyperlinkedIdentityField(
-        view_name='psycho:applicant-detail',
+        view_name="psycho:applicant-detail",
         read_only=True,
     )
 
-    user_id = serializers.PrimaryKeyRelatedField(source='user', read_only=True)
+    user_id = serializers.PrimaryKeyRelatedField(source="user", read_only=True)
 
     user = serializers.StringRelatedField(read_only=True)
 
@@ -203,7 +228,9 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
     # When initially, an applicant does not have a user account. create, update,
     # to_representation methods should handle this case accordingly.
     # Updated, providing a default value sorts the traversal on empty object issue.
-    username = serializers.CharField(source='user.username', default=None, read_only=True)
+    username = serializers.CharField(
+        source="user.username", default=None, read_only=True
+    )
     # university should be writable for validated_data to keep it; then we handle the creation.
     university = UniversitySerializer(required=False, allow_null=True)
 
@@ -257,24 +284,26 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
         """
 
         # Phone field preprocessing
-        if data.get('phone') and not data['phone'].startswith('+229'):
-            data['phone'] = '+229' + data.get('phone')
+        if data.get("phone") and not data["phone"].startswith("+229"):
+            data["phone"] = "+229" + data.get("phone")
 
         # University field processing
         university_data = data.get("university", None)
-        university_average = data.get('university_average', None)
-        university_field_of_study = data.get('university_field_of_study', None)
+        university_average = data.get("university_average", None)
+        university_field_of_study = data.get("university_field_of_study", None)
         if university_data:
-            university_average = university_data.pop('university_average', None)
-            university_field_of_study = university_data.pop('university_field_of_study', None)
+            university_average = university_data.pop("university_average", None)
+            university_field_of_study = university_data.pop(
+                "university_field_of_study", None
+            )
             # Beware, as create is overwritten, university is not readonly anymore and the deserialization of university
             # field is handle over to UniversitySerializer to_internal_value. So enforce with read_only=True
         intern = super().to_internal_value(data)
         if university_average:
-            intern['university_average'] = university_average
+            intern["university_average"] = university_average
 
         if university_field_of_study:
-            intern['university_field_of_study'] = university_field_of_study
+            intern["university_field_of_study"] = university_field_of_study
 
         return intern
 
@@ -300,11 +329,11 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
         Create a new applicant profile, and optionally create a user account if needed.
         Handle a university creation
         """
-        create_user_account = validated_data.pop('create_user_account')
-        username = validated_data.pop('username', None)
-        password = validated_data.pop('password', None)
+        create_user_account = validated_data.pop("create_user_account")
+        username = validated_data.pop("username", None)
+        password = validated_data.pop("password", None)
 
-        university = validated_data.pop('university', None)
+        university = validated_data.pop("university", None)
 
         with transaction.atomic():
 
@@ -317,11 +346,13 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
                 university_serializer.is_valid(raise_exception=True)
                 university_instance = university_serializer.save()
                 applicant_profile.university = university_instance
-                applicant_profile.save(update_fields=['university'])
+                applicant_profile.save(update_fields=["university"])
 
             # If user account creation is requested
             if create_user_account:
-                ApplicantProfileSerializer.create_usr_account(applicant_profile, username, password)
+                ApplicantProfileSerializer.create_usr_account(
+                    applicant_profile, username, password
+                )
 
         return applicant_profile
 
@@ -330,9 +361,9 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
         Update an existing applicant profile, and optionally update the user account if needed.
         """
         # In case a profile upgrade is asked.
-        create_user_account = validated_data.pop('create_user_account', None)
-        username = validated_data.pop('username', None)
-        password = validated_data.pop('password', None)
+        create_user_account = validated_data.pop("create_user_account", None)
+        username = validated_data.pop("username", None)
+        password = validated_data.pop("password", None)
         print("receive to update : ", validated_data)
         updated = super().update(instance, validated_data)
 
@@ -346,42 +377,47 @@ class ApplicationSerializer(serializers.ModelSerializer):
     """
     Serializer for an Application.
     """
+
     url = serializers.HyperlinkedIdentityField(
-        view_name='psycho:application-detail',
+        view_name="psycho:application-detail",
         read_only=True,
     )
     # applicant_profile_data = ApplicantProfileSerializer(write_only=True)
-    applicant = ApplicantProfileSerializer()  # Default to read_only but switch to writable as create is overwritten.
+    applicant = (
+        ApplicantProfileSerializer()
+    )  # Default to read_only but switch to writable as create is overwritten.
 
     # Need to be writable for further nested applicant field handling.
 
-    status_history_ids = serializers.PrimaryKeyRelatedField(source='status_history', many=True, read_only=True)
+    status_history_ids = serializers.PrimaryKeyRelatedField(
+        source="status_history", many=True, read_only=True
+    )
 
     class Meta:
         model = Application
         fields = [
-            'url',
-            'application_id',
-            'tracking_id',
-            'applicant',
-            'status',
-            'date_submitted',
-            'date_updated',
-            'status_history_ids',
+            "url",
+            "application_id",
+            "tracking_id",
+            "applicant",
+            "status",
+            "date_submitted",
+            "date_updated",
+            "status_history_ids",
         ]
 
         read_only_fields = [
-            'application_id',
+            "application_id",
             # 'tracking_id',
-            'date_submitted',
-            'date_updated',
+            "date_submitted",
+            "date_updated",
         ]
 
     def create(self, validated_data):
         """
         Create a new application.
         """
-        applicant_profile_data = validated_data.pop('applicant', None)
+        applicant_profile_data = validated_data.pop("applicant", None)
 
         with transaction.atomic():  # Transaction because save tries to create an applicant profile if
             # it does not exist, thus the database hit must be atomic.
@@ -389,7 +425,9 @@ class ApplicationSerializer(serializers.ModelSerializer):
             # Here we delegate the applicant profile creation to the nested serializer, not the Model manager
             if applicant_profile_data:
                 # Since applicant is a writable serializer on ApplicationSerialize, applicant is expected by default
-                applicant_serializer = ApplicantProfileSerializer(data=applicant_profile_data)
+                applicant_serializer = ApplicantProfileSerializer(
+                    data=applicant_profile_data
+                )
                 applicant_serializer.is_valid(raise_exception=True)
                 applicant_instance = applicant_serializer.save()
 
@@ -398,7 +436,13 @@ class ApplicationSerializer(serializers.ModelSerializer):
                 application.save()
             except ValueError as ve:
                 message = str(ve)
-                field_names = ['first_name', 'last_name', 'date_of_birth', 'email', 'phone']
+                field_names = [
+                    "first_name",
+                    "last_name",
+                    "date_of_birth",
+                    "email",
+                    "phone",
+                ]
                 for field in field_names:
                     if field in message:
                         raise serializers.ValidationError({field: message})
