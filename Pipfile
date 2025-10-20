@@ -14,6 +14,7 @@ django-simple-history = "*"
 python-decouple = "*"
 daphne = "*"
 psycopg2-binary = "*"
+model-bakery = "*"
 
 [dev-packages]
 
