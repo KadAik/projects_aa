@@ -697,7 +697,11 @@ class Degree(models.Model):
         PHD = "Phd", _("Phd")
         OTHER = "Other", _("Other")
 
-    name = models.CharField("The degree name", max_length=99)
+    name = models.CharField(
+        "The degree name",
+        max_length=99,
+        help_text="Intitulé du diplôme, e.g., Bachelor of Science in Computer Science",
+    )
     degree = models.CharField(
         "The degree type", max_length=10, choices=DegreeChoices.choices
     )
@@ -723,6 +727,9 @@ class CompositionCentre(models.Model):
         help_text="Centre de composition",
         unique=True,
         db_index=True,
+        error_messages={
+            "unique": "A composition centre with this name already exists."
+        },
     )
     location = models.CharField("The centre location", max_length=199)
 

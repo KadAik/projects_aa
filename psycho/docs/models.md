@@ -26,73 +26,6 @@
     admin_profile.save(validate=False)  # Skips validation
     ```
 
-# Application Model – Data Requirements
-
-The `Application` model represents an application submitted by an applicant and is linked to an `ApplicantProfile`.
-
----
-
-## 1. Fields Automatically Handled by the System
-
--   **application_id**: Auto-generated UUID (primary key).
--   **date_submitted**: Auto-set at creation.
--   **date_updated**: Auto-updated on modification.
--   **tracking_id**: Auto-generated in the format  
-    `{last_name[:2]}-{ddmmyy_of_birth}-{random_3_digits}`  
-    Example: `Jo-200501-482`.
-
----
-
-## 2. Ways to Create an Application
-
-### A. If ApplicantProfile Already Exists
-
-Provide only the `applicant` field (UUID):
-
-```json
-{
-    "applicant": "uuid-of-existing-applicant-profile",
-    "status": "Pending"
-}
-```
-
-### B. If an applicant profile doesn't exist
-
-Provide applicant details under a dict `applicant_profile_data`.
-
-For example :
-The following fields are required,
-
-```json
-{
-    "applicant_profile_data": {
-        "first_name": "Alice",
-        "last_name": "Johnson",
-        "gender": "F",
-        "date_of_birth": "2001-05-20",
-        "email": "alice.johnson@example.com",
-        "phone": "+22991234567",
-        "degree": "BACHELOR",
-        "baccalaureate_series": "D",
-        "baccalaureate_session": "2019-07-01",
-        "baccalaureate_average": 15.5
-    },
-    "status": "Pending"
-}
-```
-
-The status field accepts the following values:
-
--   Pending (default)
--   Accepted
--   Rejected
--   Incomplete
-
-**Notes**:
-An application creation or update triggers the creation of ApplicationStatusHistory
-model via a listener for post_save signal emitted by Application model.
-This is for logging purposes in order to track status changes on an application.
-
 # Applicant Profile API Specification
 
 ## Create Applicant Profile
@@ -238,3 +171,36 @@ This is for logging purposes in order to track status changes on an application.
     - `npi`
     - `email`
     - `phone`
+
+# Application API — Create Application
+
+## Endpoint
+
+**POST** `/api/applications/`
+
+Creates a new application record for an existing applicant.
+
+---
+
+## Expected JSON Payload
+
+```json
+{
+  "applicant": "<applicant> | a json representing an applicant",
+  "composition_centre": "<composition_centre | a json representing a CC>"
+}
+
+## Fields description
+
+
+| Field                | Type     | Constraints                                                                            | Description                                           |
+| -------------------- | -------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `application_id`     | UUID     | Auto-generated, read-only                                                              | Unique identifier for the application                 |
+| `applicant`          | UUID     | Required, must reference existing `ApplicantProfile` ID                                | Links the application to a specific applicant         |
+| `tracking_id`        | string   | Auto-generated, unique, read-only                                                      | Human-readable reference for tracking the application |
+| `composition_centre` | integer  | Required, must reference existing `CompositionCentre` ID                               | Centre where the applicant will take the exam         |
+| `status`             | string   | Default: `"Pending"`, choices: `"Pending"`, `"Accepted"`, `"Rejected"`, `"Incomplete"` | Current processing state of the application           |
+| `date_submitted`     | datetime | Auto-generated on creation, read-only                                                  | Timestamp when the application was first submitted    |
+| `date_updated`       | datetime | Auto-updated on modification, read-only                                                | Timestamp of the most recent update                   |
+
+```

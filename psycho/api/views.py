@@ -11,17 +11,23 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
 from psycho.models import (
+    CompositionCentre,
     User,
     AdminProfile,
     ApplicantProfile,
-    Application, ApplicationStatusHistory,
+    Application,
+    ApplicationStatusHistory,
+    Degree,
 )
 from psycho.paginators import SafePageNumberPagination
 from psycho.serializers import (
+    CompositionCentreSerializer,
+    DegreeSerializer,
     UserSerializer,
     AdminProfileSerializer,
     ApplicantProfileSerializer,
-    ApplicationSerializer, ApplicationStatusHistorySerializer
+    ApplicationSerializer,
+    ApplicationStatusHistorySerializer,
 )
 
 
@@ -29,6 +35,7 @@ class UserRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     """
     View to retrieve, update or delete a user.
     """
+
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
@@ -37,6 +44,7 @@ class AdminProfileListCreateView(generics.ListCreateAPIView):
     """
     View to list all admin profiles.
     """
+
     queryset = AdminProfile.objects.all()
     serializer_class = AdminProfileSerializer
 
@@ -45,6 +53,7 @@ class AdminProfileRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIVie
     """
     View to retrieve, update or delete an admin profile.
     """
+
     queryset = AdminProfile.objects.all()
     serializer_class = AdminProfileSerializer
 
@@ -53,7 +62,8 @@ class ApplicantProfileListCreateView(generics.ListCreateAPIView):
     """
     View to list all applicants.
     """
-    queryset = ApplicantProfile.objects.all()
+
+    queryset = ApplicantProfile.objects.select_related("highest_degree").all()
     serializer_class = ApplicantProfileSerializer
 
 
@@ -61,14 +71,15 @@ class ApplicantProfileRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAP
     """
     View to retrieve, update or delete an applicant.
     """
+
     queryset = ApplicantProfile.objects.all()
     serializer_class = ApplicantProfileSerializer
 
 
 class ApplicationViewSet(viewsets.ViewSet):
     """
-    ViewSet for managing Application objects. This viewset provides actions 
-    such as listing all applications, retrieving a specific application, 
+    ViewSet for managing Application objects. This viewset provides actions
+    such as listing all applications, retrieving a specific application,
     creating new applications, updating existing ones, and deleting applications.
     """
 
@@ -79,26 +90,36 @@ class ApplicationViewSet(viewsets.ViewSet):
         List all applications.
         """
         tracking_id = request.query_params.get("tracking_id")
-        print("Tracking_id is : ", tracking_id)
-        if tracking_id is not None and tracking_id.strip() != '':
+        if tracking_id is not None and tracking_id.strip() != "":
             application = get_object_or_404(Application, tracking_id=tracking_id)
-            serialized_item = self.serializer_class(instance=application, context={'request': request})
+            serialized_item = self.serializer_class(
+                instance=application, context={"request": request}
+            )
             return Response(serialized_item.data, status=drf_status.HTTP_200_OK)
 
-        queryset = Application.objects.prefetch_related(
-            Prefetch('status_history', queryset=ApplicationStatusHistory.objects.select_related('changed_by').order_by(
-                '-date_changed')), )
+        queryset = Application.objects.select_related(
+            "applicant", "composition_centre"
+        ).prefetch_related(
+            Prefetch(
+                "status_history",
+                queryset=ApplicationStatusHistory.objects.select_related(
+                    "changed_by"
+                ).order_by("-date_changed"),
+            ),
+        )
         # Filters
-        status = request.query_params.get('status')
-        degree = request.query_params.get('degree')
-        baccalaureate_series = request.query_params.get('baccalaureate_series')
+        status = request.query_params.get("status")
+        degree = request.query_params.get("degree")
+        baccalaureate_series = request.query_params.get("baccalaureate_series")
 
         if status:
             queryset = queryset.filter(status=status)
         if degree:
             queryset = queryset.filter(applicant__degree=degree)
         if baccalaureate_series:
-            queryset = queryset.filter(applicant__baccalaureate_series__exact=baccalaureate_series)
+            queryset = queryset.filter(
+                applicant__baccalaureate_series__exact=baccalaureate_series
+            )
 
         # Sorting
         sort_by = request.query_params.get("sort_by")
@@ -114,7 +135,9 @@ class ApplicationViewSet(viewsets.ViewSet):
                     sort_by_.append(f"-{clean_field}" if descending else clean_field)
                 else:
                     sort_by_.append(
-                        f"-applicant__{clean_field}" if descending else f"applicant__{clean_field}"
+                        f"-applicant__{clean_field}"
+                        if descending
+                        else f"applicant__{clean_field}"
                     )
             queryset = queryset.order_by(*sort_by_)
 
@@ -123,7 +146,9 @@ class ApplicationViewSet(viewsets.ViewSet):
         # Pagination
         paginator = SafePageNumberPagination()
         paginated_queryset = paginator.paginate_queryset(queryset, request=request)
-        serialized_items = self.serializer_class(instance=paginated_queryset, many=True, context={'request': request})
+        serialized_items = self.serializer_class(
+            instance=paginated_queryset, many=True, context={"request": request}
+        )
         # return Response(serialized_items.data, status=drf_status.HTTP_200_OK)
         return paginator.get_paginated_response(serialized_items.data)
 
@@ -132,14 +157,18 @@ class ApplicationViewSet(viewsets.ViewSet):
         Retrieve a specific application by its ID.
         """
         application = get_object_or_404(Application, pk=pk)
-        serializer = self.serializer_class(instance=application, context={'request': request})
+        serializer = self.serializer_class(
+            instance=application, context={"request": request}
+        )
         return Response(serializer.data, status=drf_status.HTTP_200_OK)
 
     def create(self, request):
         """
         Create a new application.
         """
-        serializer = self.serializer_class(data=request.data, context={'request': request})
+        serializer = self.serializer_class(
+            data=request.data, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
@@ -153,7 +182,7 @@ class ApplicationViewSet(viewsets.ViewSet):
         data = request.data.copy()
 
         # We check if the nested field applicant is to be updated
-        applicant_data = data.pop('applicant', None)
+        applicant_data = data.pop("applicant", None)
 
         with transaction.atomic():
             if applicant_data:
@@ -162,14 +191,16 @@ class ApplicationViewSet(viewsets.ViewSet):
                     applicant_instance,
                     data=applicant_data,
                     partial=True,
-                    context={'request': request}
+                    context={"request": request},
                 )
 
                 applicant_serializer.is_valid(raise_exception=True)
 
                 applicant_serializer.save()
 
-            serializer = self.serializer_class(instance, data=data, partial=True, context={'request': request})
+            serializer = self.serializer_class(
+                instance, data=data, partial=True, context={"request": request}
+            )
             serializer.is_valid(raise_exception=True)
 
             serializer.save()
@@ -177,11 +208,35 @@ class ApplicationViewSet(viewsets.ViewSet):
         return Response(serializer.data, status=drf_status.HTTP_200_OK)
 
 
-@api_view(['get'])
+@api_view(["get"])
 def application_status_history(request, pk):
     """
     List all application status history for a specific application.
     """
     status_history = ApplicationStatusHistory.objects.filter(application_id=pk)
-    status_history_serializer = ApplicationStatusHistorySerializer(status_history, many=True)
+    status_history_serializer = ApplicationStatusHistorySerializer(
+        status_history, many=True
+    )
     return Response(status_history_serializer.data, status=drf_status.HTTP_200_OK)
+
+
+class DegreeViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing Degree objects.
+    """
+
+    queryset = Degree.objects.all()
+    serializer_class = DegreeSerializer
+
+    pagination_class = SafePageNumberPagination
+
+
+class CompositionCentreViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing CompositionCentre objects.
+    """
+
+    queryset = CompositionCentre.objects.all()
+    serializer_class = CompositionCentreSerializer
+
+    pagination_class = SafePageNumberPagination

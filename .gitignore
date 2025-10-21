@@ -25,6 +25,7 @@ __pycache__/
 *$py.class
 
 
-# Static files #
+# Static and media files #
 # ------------ #
 staticfiles/
+media/

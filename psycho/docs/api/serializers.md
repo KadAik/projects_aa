@@ -66,3 +66,51 @@ Example:
     "username": ""
 }
 ```
+
+## Aplications
+
+** Response example **
+
+```json
+{
+    "url": "http://127.0.0.1:8000/psycho/api/applications/022c78bf-82a2-4d2b-9bcf-54da7e5abef3/",
+    "application_id": "022c78bf-82a2-4d2b-9bcf-54da7e5abef3",
+    "tracking_id": "AL-021025-191",
+    "applicant": {
+        "url": "http://127.0.0.1:8000/psycho/api/applicant/a7838b6a-5010-4761-a82c-271850b620da/",
+        "applicant_id": "a7838b6a-5010-4761-a82c-271850b620da",
+        "first_name": "Ismael",
+        "last_name": "ALI",
+        "gender": "M",
+        "npi": "7474859658",
+        "date_of_birth": "2025-10-02",
+        "place_of_birth": "Bohicon",
+        "wears_glasses": false,
+        "personnel_type": "Military",
+        "email": "ali@mail.com",
+        "phone": "+2290196325874",
+        "highest_degree": {
+            "id": 2,
+            "name": "Licence en GC",
+            "degree": "Bachelor",
+            "institution": "UP"
+        },
+        "academic_level": "BAC+4",
+        "baccalaureate_series": "D",
+        "baccalaureate_average": 14.0,
+        "birth_certificate": "http://127.0.0.1:8000/applicant_profiles/birth_certificates/ali_ismael_birth_certificate.pdf",
+        "criminal_record": "http://127.0.0.1:8000/applicant_profiles/criminal_records/ali_ismael_criminal_record.pdf",
+        "date_registered": "2025-10-21T14:58:34.123790Z",
+        "date_updated": "2025-10-21T14:58:34.123790Z"
+    },
+    "composition_centre": {
+        "id": 1,
+        "name": "Cotonou",
+        "location": "CEG Gbégamey"
+    },
+    "status": "Pending",
+    "date_submitted": "2025-10-21T14:58:34.137155Z",
+    "date_updated": "2025-10-21T14:58:34.137155Z",
+    "status_history_ids": [1]
+}
+```

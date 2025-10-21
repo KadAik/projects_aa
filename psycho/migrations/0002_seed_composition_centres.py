@@ -41,26 +41,6 @@ def populate_composition_centres(apps, schema_editor):
     logger.info(f"Found {existing_count} existing composition centres.")
 
 
-# Roll back function
-def remove_composition_centres(apps, schema_editor):
-    """
-    Reverse migration: Remove the centres (optional).
-    """
-    CompositionCentre = apps.get_model("psycho", "CompositionCentre")
-
-    centre_names = [
-        "Cotonou",
-        "Porto-Novo",
-        "Lokossa",
-        "Parakou",
-        "Abomey",
-        "Natitingou",
-    ]
-
-    deleted_count, _ = CompositionCentre.objects.filter(name__in=centre_names).delete()
-    logger.info(f"Removed {deleted_count} composition centres")
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -69,6 +49,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(
-            populate_composition_centres, reverse_code=remove_composition_centres
+            populate_composition_centres, reverse_code=migrations.RunPython.noop
         ),
     ]

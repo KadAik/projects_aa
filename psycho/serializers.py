@@ -188,13 +188,30 @@ class UniversitySerializer(serializers.ModelSerializer):
 class DegreeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Degree
-        fields = "__all__"
+        fields = ["id", "name", "degree", "institution"]
+        read_only_fields = ["id"]
 
 
 class CompositionCentreSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompositionCentre
-        fields = "__all__"
+        fields = ["id", "name", "location"]
+        read_only_fields = ["id"]
+
+    def create(self, validated_data):
+        """
+        Return an existing CompositionCentre if it exists,
+        or create a new one.
+        """
+        name = validated_data.pop("name", None)
+        if name:
+            centre, _ = CompositionCentre.objects.get_or_create(
+                name=name, defaults=validated_data
+            )
+        else:
+            raise serializers.ValidationError("A composition centre name is required")
+
+        return centre
 
 
 class ApplicationStatusHistorySerializer(serializers.ModelSerializer):
@@ -213,70 +230,39 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
-    user_id = serializers.PrimaryKeyRelatedField(source="user", read_only=True)
-
-    user = serializers.StringRelatedField(read_only=True)
-
-    create_user_account = serializers.BooleanField(
-        default=False,
-        write_only=True,
-        help_text="Create a user account for the applicant.",
-    )
-
-    # Beware, username is set here on user not on user.username.
-    # This is to prevent a NoneType object doesn't have attribute 'username' error
-    # When initially, an applicant does not have a user account. create, update,
-    # to_representation methods should handle this case accordingly.
-    # Updated, providing a default value sorts the traversal on empty object issue.
-    username = serializers.CharField(
-        source="user.username", default=None, read_only=True
-    )
-    # university should be writable for validated_data to keep it; then we handle the creation.
-    university = UniversitySerializer(required=False, allow_null=True)
+    highest_degree = DegreeSerializer()
 
     class Meta:
         model = ApplicantProfile
         fields = [
             "url",
             "applicant_id",
-            "user_id",
-            "user",
             "first_name",
             "last_name",
-            "date_of_birth",
             "gender",
+            "npi",
+            "date_of_birth",
+            "place_of_birth",
+            "wears_glasses",
+            "personnel_type",
             "email",
             "phone",
-            "degree",
+            "highest_degree",
+            "academic_level",
             "baccalaureate_series",
             "baccalaureate_average",
-            "baccalaureate_session",
-            "university",
-            "university_field_of_study",
-            "university_average",
+            "birth_certificate",
+            "criminal_record",
             "date_registered",
             "date_updated",
-            "create_user_account",
-            "username",
         ]
 
         read_only_fields = [
             "applicant_id",
-            "user",
             "date_registered",
             "date_updated",
         ]
-
-    # def to_representation(self, instance):
-    #     """
-    #     Customize the representation of the serializer.
-    #     """
-    #     # Get the initial representation
-    #     rep = super().to_representation(instance)
-    #
-    #     rep["username"] = instance.user.username if instance.user else None
-    #
-    #     return rep
+        write_only_fields = ["birth_certificate", "criminal_record"]
 
     def to_internal_value(self, data):
         """
@@ -287,25 +273,7 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
         if data.get("phone") and not data["phone"].startswith("+229"):
             data["phone"] = "+229" + data.get("phone")
 
-        # University field processing
-        university_data = data.get("university", None)
-        university_average = data.get("university_average", None)
-        university_field_of_study = data.get("university_field_of_study", None)
-        if university_data:
-            university_average = university_data.pop("university_average", None)
-            university_field_of_study = university_data.pop(
-                "university_field_of_study", None
-            )
-            # Beware, as create is overwritten, university is not readonly anymore and the deserialization of university
-            # field is handle over to UniversitySerializer to_internal_value. So enforce with read_only=True
-        intern = super().to_internal_value(data)
-        if university_average:
-            intern["university_average"] = university_average
-
-        if university_field_of_study:
-            intern["university_field_of_study"] = university_field_of_study
-
-        return intern
+        return super().to_internal_value(data)
 
     @staticmethod
     def create_usr_account(applicant_profile, username, password):
@@ -326,33 +294,19 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """
-        Create a new applicant profile, and optionally create a user account if needed.
-        Handle a university creation
+        Create a new applicant profile and related objects if needed.
         """
-        create_user_account = validated_data.pop("create_user_account")
-        username = validated_data.pop("username", None)
-        password = validated_data.pop("password", None)
-
-        university = validated_data.pop("university", None)
-
         with transaction.atomic():
+            highest_degree_data = validated_data.pop("highest_degree", None)
+            if highest_degree_data:
+                degree_serializer = DegreeSerializer(data=highest_degree_data)
+                degree_serializer.is_valid(raise_exception=True)
+                degree_instance = degree_serializer.save()
 
             # Create the applicant profile
-            applicant_profile = ApplicantProfile.objects.create(**validated_data)
-
-            # Create the university (or retrieve it)
-            if university:
-                university_serializer = UniversitySerializer(data=university)
-                university_serializer.is_valid(raise_exception=True)
-                university_instance = university_serializer.save()
-                applicant_profile.university = university_instance
-                applicant_profile.save(update_fields=["university"])
-
-            # If user account creation is requested
-            if create_user_account:
-                ApplicantProfileSerializer.create_usr_account(
-                    applicant_profile, username, password
-                )
+            applicant_profile = ApplicantProfile.objects.create(
+                highest_degree=degree_instance, **validated_data
+            )
 
         return applicant_profile
 
@@ -382,13 +336,16 @@ class ApplicationSerializer(serializers.ModelSerializer):
         view_name="psycho:application-detail",
         read_only=True,
     )
-    # applicant_profile_data = ApplicantProfileSerializer(write_only=True)
-    applicant = (
-        ApplicantProfileSerializer()
-    )  # Default to read_only but switch to writable as create is overwritten.
+    # For reading: return full serialized object
+    applicant = ApplicantProfileSerializer(read_only=True)
 
-    # Need to be writable for further nested applicant field handling.
+    # For writing: accept nested applicant data
+    applicant_data = ApplicantProfileSerializer(write_only=True, source="applicant")
 
+    # Accept composition centre by name for writing, return full object for reading
+    composition_centre = serializers.SlugRelatedField(
+        slug_field="name", queryset=CompositionCentre.objects.all()
+    )
     status_history_ids = serializers.PrimaryKeyRelatedField(
         source="status_history", many=True, read_only=True
     )
@@ -400,6 +357,8 @@ class ApplicationSerializer(serializers.ModelSerializer):
             "application_id",
             "tracking_id",
             "applicant",
+            "applicant_data",
+            "composition_centre",
             "status",
             "date_submitted",
             "date_updated",
@@ -408,7 +367,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
 
         read_only_fields = [
             "application_id",
-            # 'tracking_id',
+            "tracking_id",
             "date_submitted",
             "date_updated",
         ]
@@ -417,36 +376,35 @@ class ApplicationSerializer(serializers.ModelSerializer):
         """
         Create a new application.
         """
+        print("Creating application with data:", validated_data)
         applicant_profile_data = validated_data.pop("applicant", None)
+        composition_centre_instance = validated_data.pop("composition_centre", None)
+        with transaction.atomic():
 
-        with transaction.atomic():  # Transaction because save tries to create an applicant profile if
-            # it does not exist, thus the database hit must be atomic.
+            # Create the applicant profile
+            applicant_serializer = ApplicantProfileSerializer(
+                data=applicant_profile_data
+            )
+            applicant_serializer.is_valid(raise_exception=True)
+            applicant_instance = applicant_serializer.save()
 
-            # Here we delegate the applicant profile creation to the nested serializer, not the Model manager
-            if applicant_profile_data:
-                # Since applicant is a writable serializer on ApplicationSerialize, applicant is expected by default
-                applicant_serializer = ApplicantProfileSerializer(
-                    data=applicant_profile_data
-                )
-                applicant_serializer.is_valid(raise_exception=True)
-                applicant_instance = applicant_serializer.save()
-
-            application = Application(**validated_data, applicant=applicant_instance)
-            try:
-                application.save()
-            except ValueError as ve:
-                message = str(ve)
-                field_names = [
-                    "first_name",
-                    "last_name",
-                    "date_of_birth",
-                    "email",
-                    "phone",
-                ]
-                for field in field_names:
-                    if field in message:
-                        raise serializers.ValidationError({field: message})
-                # fallback generic error
-                raise serializers.ValidationError(message) from ve
+            # Create the application
+            application = Application.objects.create_with_tracking_id(
+                applicant=applicant_instance,
+                composition_centre=composition_centre_instance,
+                **validated_data,
+            )
 
         return application
+
+    def to_representation(self, instance):
+        """
+        Customize output to return full composition centre details.
+        """
+        representation = super().to_representation(instance)
+        # Replace the name with full serialized object
+        if instance.composition_centre:
+            representation["composition_centre"] = CompositionCentreSerializer(
+                instance.composition_centre
+            ).data
+        return representation
