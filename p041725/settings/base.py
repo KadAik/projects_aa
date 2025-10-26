@@ -160,17 +160,12 @@ Q_CLUSTER = {
     "max_attempts": 3,
     "compress": False,
     "save_limit": 250,
-    "queue_limit": 500,
+    "queue_limit": 10,
     "cpu_affinity": 1,
     "label": "Django Q",
     "redis": {
         "host": "localhost",
         "port": 6379,
         "db": 0,
-        "password": None,
-        "socket_timeout": None,
-        "charset": "utf-8",
-        "errors": "strict",
-        "unix_socket_path": None,
     },
 }
