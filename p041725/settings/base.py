@@ -139,13 +139,14 @@ DEFAULT_FROM_EMAIL = config(
 EMAIL_BACKEND = config(
     "EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend"
 )
-EMAIL_HOST = config("EMAIL_HOST", default="smtp.psycho-tests.emaa.mil.bj")
-EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
-EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
+EMAIL_HOST = config("EMAIL_HOST", default="behanzin.001.africa")
+EMAIL_PORT = config("EMAIL_PORT", default=465, cast=int)
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=False, cast=bool)
+EMAIL_USE_SSL = config("EMAIL_USE_SSL", default=True, cast=bool)
 EMAIL_HOST_USER = config(
-    "EMAIL_HOST_USER", default="your_email@psycho-tests.emaa.mil.bj"
+    "EMAIL_HOST_USER", default="noreply@psycho-tests.emaa.defense.bj"
 )
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="your_email_password")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="********")
 
 
 # Site URL
@@ -156,8 +157,9 @@ Q_CLUSTER = {
     "name": "PsychoTestsCluster",
     "workers": 4,
     "recycle": 500,
-    "timeout": 60,
-    "max_attempts": 3,
+    "timeout": 120,
+    "retry": 150,
+    "max_attempts": 10,
     "compress": False,
     "save_limit": 250,
     "queue_limit": 10,
