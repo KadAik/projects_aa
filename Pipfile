@@ -19,6 +19,7 @@ redis = "*"
 psutil = "*"
 hiredis = "*"
 django-q2 = "*"
+premailer = "*"
 
 [dev-packages]
 
