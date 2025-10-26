@@ -15,6 +15,10 @@ python-decouple = "*"
 daphne = "*"
 psycopg2-binary = "*"
 model-bakery = "*"
+redis = "*"
+psutil = "*"
+hiredis = "*"
+django-q2 = "*"
 
 [dev-packages]
 

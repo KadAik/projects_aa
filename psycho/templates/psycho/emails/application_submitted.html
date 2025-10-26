@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Candidature reçue</title>
+    <style>
+        :root {
+            --primary-blue: #4a6ee0;
+            --light-blue: #e8f0fe;
+            --accent-blue: #6c8eff;
+            --dark-blue: #2c3e50;
+            --soft-gray: #f8f9fa;
+            --border-color: #e0e6f5;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #f5f7ff;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 40px 30px;
+            box-shadow: 0 6px 25px rgba(74, 110, 224, 0.08);
+            border: 1px solid var(--border-color);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header h1 {
+            font-size: 16px;
+            color: var(--primary-blue);
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .header h2 {
+            font-size: 24px;
+            color: var(--dark-blue);
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .auto-notice {
+            background: var(--light-blue);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            color: #555;
+            display: flex;
+            align-items: center;
+        }
+
+        .auto-notice:before {
+            content: "ⓘ";
+            margin-right: 10px;
+            font-weight: bold;
+            color: var(--primary-blue);
+        }
+
+        p {
+            margin-bottom: 16px;
+            color: #444;
+        }
+
+        .tracking {
+            border-left: 4px solid var(--primary-blue);
+            background: var(--light-blue);
+            padding: 18px 20px;
+            margin: 25px 0;
+            border-radius: 6px;
+        }
+
+        .tracking p {
+            margin-bottom: 8px;
+        }
+
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
+            color: #fff;
+            padding: 12px 28px;
+            border-radius: 6px;
+            text-decoration: none;
+            margin-top: 15px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(74, 110, 224, 0.25);
+            transition: all 0.3s ease;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(74, 110, 224, 0.35);
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 13px;
+            color: #777;
+            margin-top: 35px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer a {
+            color: var(--primary-blue);
+            text-decoration: none;
+        }
+
+        .contact-info {
+            background: var(--soft-gray);
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo-circle {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
+            border-radius: 50%;
+            color: white;
+            line-height: 60px;
+            font-weight: bold;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+       
+        <div class="header">
+            <h1>Tests psychotechniques air 2025</h1>
+            <h2>Candidature reçue</h2>
+        </div>
+
+        <div class="auto-notice">
+            Ceci est un message automatique. Merci de ne pas y répondre directement.
+        </div>
+
+        <p>Bonjour {{first_name}},</p>
+
+        <p>Votre candidature a bien été reçue et sera traitée très prochainement.</p>
+
+        <div class="tracking">
+            <p><strong>Numéro de suivi :</strong> {{tracking_id}}</p>
+        </div>
+
+        <p style="text-align:center;">
+            <a href="{{track}}" class="button">Suivre ma candidature</a>
+        </p>
+
+        <div class="contact-info">
+            <p>Pour toute question :<br>
+                <a href="mailto:contact@psycho-tests.emaa.mil.bj">contact@psycho-tests.emaa.mil.bj</a> | +229 01 67 41 05 41
+            </p>
+        </div>
+
+        <p>Cordialement,<br>
+            <strong>Service Ressources Humaines</strong><br>
+            Etat-major de l'Armée de l'Air<br>
+            Forces Armées Béninoises
+        </p>
+
+        <div class="footer">
+            <p>&copy; 2025 Forces Armées Béninoises. Tous droits réservés.</p>
+    </div>
+</body>
+
+</html>

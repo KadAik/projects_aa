@@ -1,5 +1,8 @@
 from django.db import transaction
 from rest_framework import serializers
+from django_q.tasks import async_task
+
+from psycho.utils.emails_utils import send_application_confirmation_email
 
 from .models import (
     CompositionCentre,
@@ -394,6 +397,8 @@ class ApplicationSerializer(serializers.ModelSerializer):
                 composition_centre=composition_centre_instance,
                 **validated_data,
             )
+
+        async_task(send_application_confirmation_email, application.application_id)
 
         return application
 

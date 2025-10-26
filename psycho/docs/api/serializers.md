@@ -69,7 +69,7 @@ Example:
 
 ## Aplications
 
-** Response example **
+**Response example**
 
 ```json
 {

@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     # Django REST framework
     "rest_framework",
     "simple_history",
+    "django_q",
 ]
 
 MIDDLEWARE = [
@@ -130,3 +131,46 @@ REST_FRAMEWORK = {
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Email settings
+DEFAULT_FROM_EMAIL = config(
+    "DEFAULT_FROM_EMAIL", default="noreply@psycho-tests.emaa.mil.bj"
+)
+EMAIL_BACKEND = config(
+    "EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend"
+)
+EMAIL_HOST = config("EMAIL_HOST", default="smtp.psycho-tests.emaa.mil.bj")
+EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
+EMAIL_HOST_USER = config(
+    "EMAIL_HOST_USER", default="your_email@psycho-tests.emaa.mil.bj"
+)
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="your_email_password")
+
+
+# Site URL
+SITE_URL = config("SITE_URL", default="http://localhost:8000")
+
+# Django Q settings
+Q_CLUSTER = {
+    "name": "PsychoTestsCluster",
+    "workers": 4,
+    "recycle": 500,
+    "timeout": 60,
+    "max_attempts": 3,
+    "compress": False,
+    "save_limit": 250,
+    "queue_limit": 500,
+    "cpu_affinity": 1,
+    "label": "Django Q",
+    "redis": {
+        "host": "localhost",
+        "port": 6379,
+        "db": 0,
+        "password": None,
+        "socket_timeout": None,
+        "charset": "utf-8",
+        "errors": "strict",
+        "unix_socket_path": None,
+    },
+}
