@@ -92,7 +92,6 @@ services:
     networks:
       - psycho-back-network
       - psycho-front-network
-      - shared-nginx-network
     ports:
       - "81:80"
 
