@@ -27,6 +27,10 @@ echo "Applying database migrations..."
 python manage.py makemigrations --noinput
 python manage.py migrate --noinput
 
+# Get qcluster up and running for background tasks
+echo "Starting Django Q cluster..."
+python manage.py qcluster &
+
 # Start the server (the CMD command from the Dockerfile)
 echo "Starting server..."
 exec "$@"

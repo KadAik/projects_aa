@@ -164,8 +164,8 @@ Q_CLUSTER = {
     "cpu_affinity": 1,
     "label": "Django Q",
     "redis": {
-        "host": "localhost",
-        "port": 6379,
-        "db": 0,
+        "host": config("REDIS_HOST", default="localhost"),
+        "port": config("REDIS_PORT", default=6379, cast=int),
+        "db": config("REDIS_DB", default=0, cast=int),
     },
 }
