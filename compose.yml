@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:latest
-    container_name: psycho-postgres
+    container_name: psycho-db
     restart: always
     # set shared memory limit when using docker compose
     shm_size: 128mb
@@ -24,12 +24,23 @@ services:
       retries: 5
       start_period: 0s
 
+  redis:
+    image: redis:latest
+    container_name: psycho-redis
+    restart: always
+    networks:
+      - psycho-back-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+
   back:
     image: kadolphe/psycho-back-tests:latest
-    container_name: psycho-backend
+    container_name: psycho-back
     restart: always
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     env_file:
       - .env
@@ -51,7 +62,7 @@ services:
 
   front:
     image: kadolphe/psycho-front-tests:latest
-    container_name: psycho-frontend
+    container_name: psycho-front
     restart: always
     depends_on:
       back:
@@ -97,7 +108,5 @@ networks:
   psycho-front-network:
   psycho-back-network:
   psycho-db-network:
-  shared-nginx-network:
-    external: true
       
 
