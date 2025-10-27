@@ -351,6 +351,24 @@ class ApplicantProfile(models.Model, NormalizeFieldsMixin):
         upload_to=ApplicantUploadTo("criminal_records"),
         validators=[validate_uploaded_file_size],
         help_text="Recent criminal record extract for the applicant",
+        null=True,
+        blank=True,
+    )
+
+    baccalaureate_certificate = models.FileField(
+        "Baccalaureate certificate",
+        upload_to=ApplicantUploadTo("baccalaureate_certificates"),
+        validators=[validate_uploaded_file_size],
+        help_text="Scanned copy of the applicant's baccalaureate certificate",
+    )
+
+    highest_degree_certificate = models.FileField(
+        "Highest degree certificate",
+        upload_to=ApplicantUploadTo("highest_degree_certificates"),
+        validators=[validate_uploaded_file_size],
+        help_text="Scanned copy of the applicant's highest degree certificate",
+        null=True,
+        blank=True,
     )
 
     # -------------------------------------

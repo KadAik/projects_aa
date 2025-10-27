@@ -256,6 +256,8 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
             "baccalaureate_average",
             "birth_certificate",
             "criminal_record",
+            "baccalaureate_certificate",
+            "highest_degree_certificate",
             "date_registered",
             "date_updated",
         ]
@@ -265,7 +267,12 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
             "date_registered",
             "date_updated",
         ]
-        write_only_fields = ["birth_certificate", "criminal_record"]
+        write_only_fields = [
+            "birth_certificate",
+            "criminal_record",
+            "baccalaureate_certificate",
+            "highest_degree_certificate",
+        ]
 
     def to_internal_value(self, data):
         """
