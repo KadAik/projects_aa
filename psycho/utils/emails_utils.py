@@ -22,8 +22,17 @@ def send_application_confirmation_email(application_id):
     }
 
     html_content = render_to_string("psycho/emails/application_submitted.html", context)
-    # Inline all CSS so styles are preserved across all mail clients
-    html_content = transform(html_content, remove_classes=True, strip_important=False)
+
+    # Inline all CSS with premailer
+    html_content = transform(
+        html_content,
+        base_url=settings.SITE_URL,  # Base URL for relative links
+        remove_classes=False,  # Keep classes for email clients that support them
+        strip_important=False,
+        keep_style_tags=False,  # Remove style tags after inlining
+        exclude_pseudoclasses=True,  # Remove :hover and other pseudo-classes
+    )
+
     text_content = strip_tags(html_content)
 
     email = EmailMultiAlternatives(
@@ -33,13 +42,15 @@ def send_application_confirmation_email(application_id):
         to=[applicant.email],
         reply_to=["support@psycho-tests.emaa.mil.bj"],
     )
+
+    # Attach HTML version
     email.attach_alternative(html_content, "text/html")
-    email.content_subtype = "html"
-    email.mixed_subtype = "related"  # ensures proper multipart formatting
+
     email.encoding = "utf-8"
 
     try:
         email.send()
+        logger.info("Confirmation email sent successfully to %s", applicant.email)
         return True
     except Exception as e:
         logger.exception("Email sending failed for %s: %s", applicant.email, e)

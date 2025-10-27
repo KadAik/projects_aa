@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:latest
+    image: postgres:18
     container_name: psycho-db
     restart: always
     # set shared memory limit when using docker compose
@@ -13,7 +13,7 @@ services:
         source: ./postgres-init
         target: /docker-entrypoint-initdb.d
         read_only: true
-      - db-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql
     networks:
       - psycho-db-network
 
@@ -45,8 +45,8 @@ services:
     env_file:
       - .env
     environment:
-    - ALLOWED_HOSTS=localhost,127.0.0.1,psycho-tests.defense.bj
-    - CORS_ALLOWED_ORIGINS=http://psycho-tests.defense.bj,https://psycho-tests.defense.bj,http://localhost
+    - ALLOWED_HOSTS=localhost,127.0.0.1,psycho-tests.defense.bj,psycho-tests.emaa.mil.bj
+    - CORS_ALLOWED_ORIGINS=http://psycho-tests.defense.bj,https://psycho-tests.defense.bj,http://localhost,http://psycho-tests.emaa.mil.bj,https://psycho-tests.emaa.mil.bj
     networks:
       - psycho-back-network
       - psycho-db-network
