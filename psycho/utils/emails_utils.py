@@ -18,7 +18,7 @@ def send_application_confirmation_email(application_id):
     context = {
         "first_name": applicant.first_name,
         "tracking_id": application.tracking_id,
-        "track": f"{settings.SITE_URL}/applications/track/",
+        "track": f"{settings.SITE_URL}applications/track",
     }
 
     html_content = render_to_string("psycho/emails/application_submitted.html", context)
