@@ -28,7 +28,7 @@ services:
       start_period: 0s
 
   redis:
-    image: redis:latest
+    image: redis:8.2
     container_name: psycho-redis
     restart: always
     networks:
@@ -36,9 +36,10 @@ services:
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
 
-  back:
+  # We will be using two instances of the backend for load balancing.
+  back-1:
     image: kadolphe/psycho-back-tests:latest
-    container_name: psycho-back
+    container_name: psycho-back-1
     restart: always
     depends_on:
       db:
@@ -63,6 +64,33 @@ services:
       - static:/staticfiles
       - media:/media
 
+  back-2:
+      image: kadolphe/psycho-back-tests:latest
+      container_name: psycho-back-2
+      restart: always
+      depends_on:
+        db:
+          condition: service_healthy
+        redis:
+          condition: service_healthy
+      env_file:
+        - .env
+      environment:
+      - ALLOWED_HOSTS=localhost,127.0.0.1,psycho-tests.defense.bj,psycho-tests.emaa.mil.bj
+      - CORS_ALLOWED_ORIGINS=http://psycho-tests.defense.bj,https://psycho-tests.defense.bj,http://localhost,http://psycho-tests.emaa.mil.bj,https://psycho-tests.emaa.mil.bj
+      networks:
+        - psycho-back-network
+        - psycho-db-network
+      healthcheck:
+        test: python -c 'import urllib.request; urllib.request.urlopen("http://localhost:8000")' || exit 1
+        interval: 10s
+        timeout: 5s
+        retries: 5
+        start_period: 10s
+      volumes:
+        - static:/staticfiles
+        - media:/media
+
   front:
     image: kadolphe/psycho-front-tests:latest
     container_name: psycho-front
@@ -79,8 +107,9 @@ services:
       retries: 5
       start_period: 10s
 
+  # reverse proxy and load balancing
   nginx:
-    image: nginx:latest
+    image: nginx:1.29
     container_name: psycho-nginx
     restart: always
     volumes:
@@ -88,7 +117,9 @@ services:
       - static:/staticfiles:ro
       - media:/media:ro
     depends_on:
-      back:
+      back-1:
+        condition: service_healthy
+      back-2:
         condition: service_healthy
       front:
         condition: service_healthy

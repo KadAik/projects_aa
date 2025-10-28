@@ -171,3 +171,8 @@ Q_CLUSTER = {
         "db": config("REDIS_DB", default=0, cast=int),
     },
 }
+
+# File handler settings
+FILE_UPLOAD_MAX_MEMORY_SIZE = (
+    0.5 * 1024 * 1024
+)  # 0.5 MB (typically forces files larger than this to be streamed to disk)

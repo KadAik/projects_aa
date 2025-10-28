@@ -27,6 +27,10 @@ echo "Applying database migrations..."
 python manage.py makemigrations --noinput
 python manage.py migrate --noinput
 
+# Create default superuser if it doesn't exist
+echo "Creating default superuser if it doesn't exist..."
+python manage.py createsuperuser --username "${DJANGO_SUPERUSER_USERNAME}" --email "${DJANGO_SUPERUSER_EMAIL}" --password "${DJANGO_SUPERUSER_PASSWORD}" --noinput || echo "Superuser already exists, skipping..."
+
 # Get qcluster up and running for background tasks
 echo "Starting Django Q cluster..."
 python manage.py qcluster &
