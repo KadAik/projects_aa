@@ -96,7 +96,9 @@ services:
     container_name: psycho-front
     restart: always
     depends_on:
-      back:
+      back-1:
+        condition: service_healthy
+      back-2:
         condition: service_healthy
     networks:
       - psycho-front-network

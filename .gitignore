@@ -16,7 +16,7 @@ front
 
 # Configurations #
 # -------------- #
-.env.*
+.env*
 
 # Byte-compiled / optimized / DLL files
 # ----------------------------------- #
