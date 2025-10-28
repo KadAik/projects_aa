@@ -16,6 +16,9 @@ services:
       - db-data:/var/lib/postgresql
     networks:
       - psycho-db-network
+    # For admin tasks outside the container
+    ports:
+      - "5433:5432"
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} || exit 1"]
