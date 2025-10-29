@@ -73,6 +73,8 @@ services:
           condition: service_healthy
         redis:
           condition: service_healthy
+        back-1:
+          condition: service_healthy # back-1 and back-2 should not start simultaneously (only one should initialize the DB)
       env_file:
         - .env
       environment:
