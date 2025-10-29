@@ -49,7 +49,7 @@ X_FRAME_OPTIONS = "DENY"  # Clickjacking protection
 
 
 # HTTPS Enforcement
-SECURE_SSL_REDIRECT = True
+# SECURE_SSL_REDIRECT = True  => reverse proxy nginx will handle https redirect
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 # HTTP Strict Transport Security (HSTS):
