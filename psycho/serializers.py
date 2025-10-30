@@ -1,7 +1,7 @@
 from django.db import transaction
 from rest_framework import serializers
 from django_q.tasks import async_task
-
+import bleach
 from psycho.utils.emails_utils import send_application_confirmation_email
 
 from .models import (
@@ -16,7 +16,36 @@ from .models import (
 )
 
 
-class UserSerializer(serializers.ModelSerializer):
+import bleach
+
+
+class SanitizeStringFieldMixin:
+    """
+    Mixin that sanitizes all string fields in serializer input using Bleach,
+    to prevent XSS attacks.
+    """
+
+    allowed_tags = []
+    allowed_attrs = {}
+
+    def validate(self, attrs):
+        cleaned_attrs = {}
+        for field, value in attrs.items():
+            if isinstance(value, str):
+                print(f"Sanitizing field {field}: {value}")
+                cleaned_attrs[field] = bleach.clean(
+                    value,
+                    tags=self.allowed_tags,
+                    attributes=self.allowed_attrs,
+                )
+            else:
+                print(f"Skipping field {field} (type={type(value)})")
+
+                cleaned_attrs[field] = value
+        return super().validate(cleaned_attrs)
+
+
+class UserSerializer(SanitizeStringFieldMixin, serializers.ModelSerializer):
     """
     Serializer for the User model.
     """
@@ -26,7 +55,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ["username", "email", "first_name", "last_name"]
 
 
-class AdminProfileSerializer(serializers.ModelSerializer):
+class AdminProfileSerializer(SanitizeStringFieldMixin, serializers.ModelSerializer):
     """
     Serializer for the AdminProfile model.
     """
@@ -188,14 +217,16 @@ class UniversitySerializer(serializers.ModelSerializer):
         return university
 
 
-class DegreeSerializer(serializers.ModelSerializer):
+class DegreeSerializer(SanitizeStringFieldMixin, serializers.ModelSerializer):
     class Meta:
         model = Degree
         fields = ["id", "name", "degree", "institution"]
         read_only_fields = ["id"]
 
 
-class CompositionCentreSerializer(serializers.ModelSerializer):
+class CompositionCentreSerializer(
+    SanitizeStringFieldMixin, serializers.ModelSerializer
+):
     class Meta:
         model = CompositionCentre
         fields = ["id", "name", "location"]
@@ -217,13 +248,15 @@ class CompositionCentreSerializer(serializers.ModelSerializer):
         return centre
 
 
-class ApplicationStatusHistorySerializer(serializers.ModelSerializer):
+class ApplicationStatusHistorySerializer(
+    SanitizeStringFieldMixin, serializers.ModelSerializer
+):
     class Meta:
         model = ApplicationStatusHistory
         fields = "__all__"
 
 
-class ApplicantProfileSerializer(serializers.ModelSerializer):
+class ApplicantProfileSerializer(SanitizeStringFieldMixin, serializers.ModelSerializer):
     """
     Serializer for the Applicant model.
     """
@@ -337,7 +370,7 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
         return updated
 
 
-class ApplicationSerializer(serializers.ModelSerializer):
+class ApplicationSerializer(SanitizeStringFieldMixin, serializers.ModelSerializer):
     """
     Serializer for an Application.
     """

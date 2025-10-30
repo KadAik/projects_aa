@@ -20,6 +20,7 @@ psutil = "*"
 hiredis = "*"
 django-q2 = "*"
 premailer = "*"
+bleach = "*"
 
 [dev-packages]
 
