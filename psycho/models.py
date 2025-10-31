@@ -337,14 +337,14 @@ class ApplicantProfile(models.Model, NormalizeFieldsMixin):
     #                Files
     # -------------------------------------
     birth_certificate = models.FileField(
-        "Birth certificate",
+        "Acte de naissance",
         upload_to=ApplicantUploadTo("birth_certificates"),
         validators=[validate_uploaded_file_size],
         help_text="Scanned copy of the applicant's birth certificate",
     )
 
     criminal_record = models.FileField(
-        "Criminal record",
+        "Casier judiciaire",
         upload_to=ApplicantUploadTo("criminal_records"),
         validators=[validate_uploaded_file_size],
         help_text="Recent criminal record extract for the applicant",
@@ -353,14 +353,14 @@ class ApplicantProfile(models.Model, NormalizeFieldsMixin):
     )
 
     baccalaureate_certificate = models.FileField(
-        "Baccalaureate certificate",
+        "Attestation du Bac",
         upload_to=ApplicantUploadTo("baccalaureate_certificates"),
         validators=[validate_uploaded_file_size],
         help_text="Scanned copy of the applicant's baccalaureate certificate",
     )
 
     highest_degree_certificate = models.FileField(
-        "Highest degree certificate",
+        "Diplôme élevé",
         upload_to=ApplicantUploadTo("highest_degree_certificates"),
         validators=[validate_uploaded_file_size],
         help_text="Scanned copy of the applicant's highest degree certificate",
@@ -508,6 +508,7 @@ class Application(models.Model):
         ApplicantProfile,
         on_delete=models.CASCADE,
         related_name="application",
+        verbose_name="Candidat",
     )
 
     # -------------------------------------
@@ -516,20 +517,22 @@ class Application(models.Model):
 
     # The following field is auto computed by the custom manager from the lastname, the date of birth and random three digits.
     tracking_id = models.CharField(
-        "A human-readable reference to track the application",
+        "Numéro de suivi",
+        help_text="A human-readable reference to track the application",
         max_length=20,
         db_index=True,
         unique=True,
         null=True,
         blank=True,
     )
-    date_submitted = models.DateTimeField(auto_now_add=True)
+    date_submitted = models.DateTimeField(auto_now_add=True, verbose_name="Soumis le")
     date_updated = models.DateTimeField(auto_now=True)
     composition_centre = models.ForeignKey(
         "CompositionCentre",
         on_delete=models.PROTECT,
         related_name="applications",
         help_text="Centre where the applicant will take the exam",
+        verbose_name="Centre",
     )
 
     class ApplicationStatus(models.TextChoices):
@@ -543,6 +546,7 @@ class Application(models.Model):
         choices=ApplicationStatus.choices,
         default=ApplicationStatus.PENDING,
         help_text="Status of the application",
+        verbose_name="Statut",
     )
 
     def __init__(self, *args, **kwargs):
