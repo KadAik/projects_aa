@@ -1,11 +1,10 @@
-import random
 import uuid
 
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import Group, Permission
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db import models, IntegrityError
+from django.db import models
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 from simple_history.models import HistoricalRecords
@@ -15,9 +14,7 @@ from django.core.validators import (
     MaxLengthValidator,
 )
 
-from django.utils.text import slugify
-
-from psycho.managers import ApplicationManager
+from psycho.managers import ApplicationManager, HRManagerProfileManager
 from psycho.utils.models_utils import ApplicantUploadTo
 from psycho.utils.models_utils import NormalizeFieldsMixin
 
@@ -425,6 +422,8 @@ class HRManagerProfile(models.Model, NormalizeFieldsMixin):
     Model representing an HR manager.
     """
 
+    objects = HRManagerProfileManager()
+
     manager_id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -446,9 +445,8 @@ class HRManagerProfile(models.Model, NormalizeFieldsMixin):
     last_name = models.CharField(
         "HR manager last name", max_length=100, help_text="HR manager's last name"
     )
-    date_of_birth = models.DateField()
 
-    # Contact information
+    # Contact
     email = models.EmailField(
         "HR manager email",
         max_length=100,
@@ -477,45 +475,6 @@ class HRManagerProfile(models.Model, NormalizeFieldsMixin):
             else f"{self.user.username}"
         )
 
-    def create_user_account(self, raw_password, username):
-        """
-        Create a user account linked to the HR manager.
-        """
-        if self.user:
-            raise ValueError("This HR manager is already linked to a user.")
-        if not raw_password:
-            raise ValueError("A password is required.")
-        if not username:
-            raise ValueError("A username is required.")
-        if User.objects.filter(username=username).exists():
-            raise ValueError("Username is already taken.")
-        if User.objects.filter(email=self.email).exists():
-            raise ValueError("Email is already taken.")
-
-        user = User.objects.create_user(
-            username=username,
-            password=raw_password,
-            email=self.email,
-            first_name=self.first_name,
-            last_name=self.last_name,
-        )
-        self.user = user
-
-        hr_manager_group, _ = Group.objects.get_or_create(name="HR Manager")
-
-        permissions = Permission.objects.filter(
-            codename__in=[
-                "can_review_applications",
-                "can_manage_applicants_profiles",
-                "can_manage_applications",
-            ]
-        )
-        hr_manager_group.permissions.add(*permissions)
-
-        user.groups.add(hr_manager_group)
-
-        self.save()
-
     def save(self, *args, **kwargs):
         self.normalize_fields()
         super().save(*args, **kwargs)
@@ -523,17 +482,7 @@ class HRManagerProfile(models.Model, NormalizeFieldsMixin):
     class Meta:
         ordering = ["last_name"]
         verbose_name = "HR Manager"
-
-        constraints = [
-            models.UniqueConstraint(
-                fields=["last_name", "date_of_birth"],
-                name="manager_unique_lower_last_name_date_of_birth",
-                violation_error_message="The HR manager already exists.",
-            ),
-        ]
-
         permissions = [
-            ("can_review_applications", "Can review applications"),
             ("can_manage_applicants_profiles", "Can manage applicants profiles"),
             ("can_manage_applications", "Can manage applications"),
         ]
