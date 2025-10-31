@@ -1,6 +1,11 @@
 from django.core.management.base import BaseCommand
 from psycho.utils.shared.utils import ensure_group_permissions
-from psycho.models import ApplicantProfile, Application, HRManagerProfile
+from psycho.models import (
+    ApplicantProfile,
+    Application,
+    CompositionCentre,
+    HRManagerProfile,
+)
 
 
 class Command(BaseCommand):
@@ -35,6 +40,7 @@ class Command(BaseCommand):
             for model, custom_perms in [
                 (ApplicantProfile, applicants_custom_perms),
                 (Application, applications_custom_perms),
+                (CompositionCentre, None),
             ]:
                 hr_manager_group = ensure_group_permissions(
                     model, "HR Manager", custom_perms
