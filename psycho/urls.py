@@ -5,7 +5,13 @@ from rest_framework.routers import DefaultRouter
 
 app_name = "psycho"
 
-urlpatterns = []
+urlpatterns = [
+    path(
+        "preview/<uuid:applicant_id>/<str:field_name>/",
+        views.preview_file,
+        name="preview_file",
+    ),
+]
 
 # User URLs
 urlpatterns += [
