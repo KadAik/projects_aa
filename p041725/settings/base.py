@@ -152,6 +152,7 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="********")
 
 # Site URL
 SITE_URL = config("SITE_URL", default="http://localhost:8000")
+LOGIN_URL = "/admin/login/"  # Use Django admin's login page
 
 # Django Q settings
 Q_CLUSTER = {
