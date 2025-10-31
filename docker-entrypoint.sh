@@ -43,6 +43,9 @@ else:
     print("Superuser already exists, skipping...")
 EOF
 
+# Create default superuser if it doesn't exist
+echo "Creating HR Manager group with required defaults permissions..."
+python manage.py create_hr_manager_group
 
 # Get qcluster up and running for background tasks
 echo "Starting Django Q cluster..."
