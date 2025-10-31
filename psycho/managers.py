@@ -91,6 +91,8 @@ class HRManagerProfileManager(models.Manager):
                 password=password,
                 email=email,
             )
+            user.is_staff = True
+            user.save()
             hr_manager = self.create_with_user(
                 user=user,
                 first_name=first_name,
