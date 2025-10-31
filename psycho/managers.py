@@ -4,6 +4,9 @@ import random
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.contrib.contenttypes.models import ContentType
+
+from psycho.utils.shared.utils import ensure_group_permissions
 
 
 class ApplicationManager(models.Manager):
@@ -25,27 +28,34 @@ class ApplicationManager(models.Manager):
 
 
 class HRManagerProfileManager(models.Manager):
-    def _ensure_hr_manager_group(self):
-        """Ensure HR Manager group and permissions exist."""
-        hr_manager_group, created = Group.objects.get_or_create(name="HR Manager")
-        if created:
-            permissions = Permission.objects.filter(
-                codename__in=[
-                    "can_manage_applicants_profiles",
-                    "can_manage_applications",
-                ]
-            )
-            hr_manager_group.permissions.add(*permissions)
-        return hr_manager_group
 
     def create_with_user(self, user, first_name, last_name, email, phone):
         """Create HR Manager profile from existing User instance."""
         User = get_user_model()
         if not isinstance(user, User):
             raise ValueError("user must be a User instance")
+        applicants_custom_perms = [
+            "can_manage_applicants_profiles",
+        ]
+        applications_custom_perms = [
+            "can_manage_applications",
+        ]
+
+        from psycho.models import (
+            ApplicantProfile,
+            Application,
+        )  # local import to avoid circular deps
 
         with transaction.atomic():
-            hr_manager_group = self._ensure_hr_manager_group()
+
+            for model, custom_perms in [
+                (ApplicantProfile, applicants_custom_perms),
+                (Application, applications_custom_perms),
+            ]:
+                hr_manager_group = ensure_group_permissions(
+                    model, "HR Manager", custom_perms
+                )
+
             user.groups.add(hr_manager_group)
 
             hr_manager = self.create(

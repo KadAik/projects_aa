@@ -1,13 +1,11 @@
 from django.core.management.base import BaseCommand
-from django.contrib.auth.models import Group, Permission
-from django.contrib.contenttypes.models import ContentType
-
-from psycho.models import HRManagerProfile
+from psycho.utils.shared.utils import ensure_group_permissions
+from psycho.models import ApplicantProfile, Application, HRManagerProfile
 
 
 class Command(BaseCommand):
     """
-    Creates an 'HR Manager' group and assigns necessary permissions to it.
+    Creates or updates the 'HR Manager' group and assigns all required permissions.
     """
 
     def add_arguments(self, parser):
@@ -20,51 +18,38 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        name = options.get("name")
-        self.stdout.write(f"\nCreating or updating group: {name}")
+        group_name = options.get("name", "HR Manager")
+
+        self.stdout.write(f"\nEnsuring group: {group_name}")
         self.stdout.write("-------------------------------------")
 
-        group, created = Group.objects.get_or_create(name=name)
-
-        if created:
-            self.stdout.write(
-                self.style.SUCCESS(f"✅ Group '{name}' successfully created.")
-            )
-        else:
-            self.stdout.write(
-                self.style.WARNING(
-                    f"⚠️  Group '{name}' already exists — updating permissions."
-                )
-            )
-
-        # Get the content type for the HRManagerProfile model
-        content_type = ContentType.objects.get_for_model(HRManagerProfile)
-
-        permissions_data = [
-            ("can_manage_applications", "Can manage applications"),
-            ("can_manage_applicants_profiles", "Can manage applicants profiles"),
+        # Define custom permissions specific to HR Manager
+        applicants_custom_perms = [
+            "can_manage_applicants_profiles",
+        ]
+        applications_custom_perms = [
+            "can_manage_applications",
         ]
 
-        created_permissions = []
-        for codename, name_label in permissions_data:
-            perm, perm_created = Permission.objects.get_or_create(
-                codename=codename,
-                name=name_label,
-                content_type=content_type,
-            )
-            created_permissions.append(perm)
-            if perm_created:
-                self.stdout.write(
-                    self.style.SUCCESS(f"  ➕ Created permission '{codename}'")
+        try:
+            for model, custom_perms in [
+                (ApplicantProfile, applicants_custom_perms),
+                (Application, applications_custom_perms),
+            ]:
+                hr_manager_group = ensure_group_permissions(
+                    model, "HR Manager", custom_perms
                 )
-            else:
-                self.stdout.write(f"  ⚙️  Permission '{codename}' already exists")
 
-        # Add permissions to group
-        group.permissions.add(*created_permissions)
-
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"\n✅ Permissions successfully assigned to group '{group.name}'"
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"✅ Group '{group_name}' successfully ensured with permissions:"
+                )
             )
-        )
+
+            for perm in hr_manager_group.permissions.all():
+                self.stdout.write(f"   • {perm.codename}")
+
+        except Exception as e:
+            self.stdout.write(
+                self.style.ERROR(f"❌ Error ensuring group '{group_name}': {e}")
+            )
