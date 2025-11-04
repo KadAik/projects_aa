@@ -5,6 +5,8 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.utils import timezone
 from django.contrib.auth.admin import UserAdmin as DefaultUserAdmin
+from django.contrib import messages
+
 from psycho.models import (
     ApplicantProfile,
     CompositionCentre,
@@ -49,9 +51,14 @@ class ApplicationAdmin(admin.ModelAdmin):
 
     list_editable = ["status"]
     list_filter = ["status", "composition_centre", "date_submitted"]
-    search_fields = ["tracking_id", "applicant__first_name", "applicant__last_name"]
+    search_fields = [
+        "tracking_id",
+        "applicant__first_name",
+        "applicant__last_name",
+        "applicant__email",
+    ]
     ordering = ["-date_submitted"]
-    actions = ["export_as_csv"]
+    actions = ["export_as_csv", "accept_applications"]
 
     @admin.display(description="Fichiers")
     def uploaded_files_preview(self, obj):
@@ -126,6 +133,20 @@ class ApplicationAdmin(admin.ModelAdmin):
             )
 
         return response
+
+    def accept_applications(self, request, queryset):
+        """
+        Admin action to accept selected applications.
+        """
+        queryset.update_status_with_notification("Accepted")
+        count = queryset.count()
+        self.message_user(
+            request,
+            f"{count} candidature(s) acceptée(s) avec succès. Emails envoyés.",
+            messages.SUCCESS,
+        )
+
+    accept_applications.short_description = "✅ Accepter les candidatures sélectionnées"
 
 
 @admin.register(User)

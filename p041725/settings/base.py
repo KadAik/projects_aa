@@ -143,7 +143,7 @@ EMAIL_BACKEND = config(
 EMAIL_HOST = config("EMAIL_HOST", default="behanzin.001.africa")
 EMAIL_PORT = config("EMAIL_PORT", default=465, cast=int)
 EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=False, cast=bool)
-EMAIL_USE_SSL = config("EMAIL_USE_SSL", default=True, cast=bool)
+EMAIL_USE_SSL = config("EMAIL_USE_SSL", default=False, cast=bool)
 EMAIL_HOST_USER = config(
     "EMAIL_HOST_USER", default="noreply@psycho-tests.emaa.defense.bj"
 )

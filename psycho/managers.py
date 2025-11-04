@@ -1,15 +1,17 @@
 from django.db import models
 from django.db.utils import IntegrityError
 import random
-from django.contrib.auth.models import Group, Permission
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.contrib.contenttypes.models import ContentType
-
+from psycho.querysets import ApplicationQuerySet
 from psycho.utils.shared.utils import ensure_group_permissions
 
 
 class ApplicationManager(models.Manager):
+
+    def get_queryset(self):
+        """Return custom QuerySet."""
+        return ApplicationQuerySet(self.model, using=self._db)
 
     def create_with_tracking_id(self, applicant, **kwargs):
         """Create application with auto-generated tracking ID."""
