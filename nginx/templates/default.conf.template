@@ -7,7 +7,7 @@ map $http_x_caller_secret $is_valid_caller {
 
 server {
     listen 80;
-    server_name psycho-tests.defense.bj localhost front back;
+    server_name psycho-tests.emaa.mil.bj localhost front back;
 
 
     # -----------------
@@ -20,7 +20,7 @@ server {
     }
 
     location /media/ {
-        alias /media/;
+        alias /mediafiles/;
         expires 7d;
         add_header Cache-Control "public";
     }

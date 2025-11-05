@@ -19,3 +19,7 @@ MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
 
 # The Debug Toolbar is shown only if the IP address is listed in Django’s INTERNAL_IPS setting
 INTERNAL_IPS = ["127.0.0.1"]
+
+# Cookie security for development (allow HTTP)
+SESSION_COOKIE_SECURE = config("SESSION_COOKIE_SECURE", default=False, cast=bool)
+CSRF_COOKIE_SECURE = config("CSRF_COOKIE_SECURE", default=False, cast=bool)

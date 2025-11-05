@@ -69,7 +69,7 @@ DATABASES = {
         "NAME": config("DB_NAME", default="psycho_db"),
         "USER": config("DB_USER", default="psycho_app"),
         "PASSWORD": config("DB_PASSWORD"),
-        "HOST": "localhost",
+        "HOST": config("DB_HOST", default="localhost"),
         "PORT": config("DB_PORT", default="5432"),
     }
 }
