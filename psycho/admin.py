@@ -20,6 +20,12 @@ from psycho.models import (
 )
 
 
+# Change admin site header
+admin.site.site_header = "Administration des Tests Psychotechniques"
+admin.site.site_title = "Portail d'Administration"
+admin.site.index_title = "Tableau de bord"
+
+
 @admin.register(ApplicantProfile)
 class ApplicantAdmin(admin.ModelAdmin):
     readonly_fields = ["user", "date_registered", "date_updated"]
