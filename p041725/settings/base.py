@@ -4,6 +4,7 @@ Django shared settings for p041725 project.
 
 from pathlib import Path
 from decouple import config
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -178,3 +179,7 @@ Q_CLUSTER = {
 FILE_UPLOAD_MAX_MEMORY_SIZE = (
     0.5 * 1024 * 1024
 )  # 0.5 MB (typically forces files larger than this to be streamed to disk)
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "x-caller-secret",
+]
