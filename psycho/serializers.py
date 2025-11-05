@@ -291,6 +291,9 @@ class ApplicantProfileSerializer(SanitizeStringFieldMixin, serializers.ModelSeri
             "criminal_record",
             "baccalaureate_certificate",
             "highest_degree_certificate",
+            "identity_document",
+            "nationality_certificate",
+            "medical_certificate",
             "date_registered",
             "date_updated",
         ]
@@ -305,6 +308,9 @@ class ApplicantProfileSerializer(SanitizeStringFieldMixin, serializers.ModelSeri
             "criminal_record",
             "baccalaureate_certificate",
             "highest_degree_certificate",
+            "identity_document",
+            "nationality_certificate",
+            "medical_certificate",
         ]
 
     def to_internal_value(self, data):

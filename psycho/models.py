@@ -368,6 +368,31 @@ class ApplicantProfile(models.Model, NormalizeFieldsMixin):
         blank=True,
     )
 
+    identity_document = models.FileField(
+        "Pièce d'identité",
+        upload_to=ApplicantUploadTo("identity_documents"),
+        validators=[validate_uploaded_file_size],
+        help_text="Scanned copy of the applicant's identity document (obligatoire)",
+    )
+
+    nationality_certificate = models.FileField(
+        "Certificat de nationalité",
+        upload_to=ApplicantUploadTo("nationality_certificates"),
+        validators=[validate_uploaded_file_size],
+        help_text="Certificate of nationality (optionnel)",
+        null=True,
+        blank=True,
+    )
+
+    medical_certificate = models.FileField(
+        "Certificat d'aptitude médical",
+        upload_to=ApplicantUploadTo("medical_certificates"),
+        validators=[validate_uploaded_file_size],
+        help_text="Medical fitness certificate (optionnel)",
+        null=True,
+        blank=True,
+    )
+
     # -------------------------------------
     #                Meta
     # -------------------------------------
