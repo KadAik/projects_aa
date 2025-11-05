@@ -66,9 +66,12 @@ class ApplicationAdmin(admin.ModelAdmin):
         links = []
         file_fields = [
             "birth_certificate",
-            "criminal_record",
+            "identity_document",
             "baccalaureate_certificate",
             "highest_degree_certificate",
+            "criminal_record",
+            "nationality_certificate",
+            "medical_certificate",
         ]
         for field in file_fields:
             f = getattr(obj.applicant, field, None)
