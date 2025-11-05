@@ -1,0 +1,65 @@
+# Map the secret token for backend call as runtime variable - use substituted env variable
+map $http_x_caller_secret $is_valid_caller {
+    default 0;
+    "~^${API_CALLER_SECRET}$" 1;
+}
+
+
+server {
+    listen 80;
+    server_name psycho-tests.defense.bj localhost front back;
+
+
+    # -----------------
+    # Serve static files and media (Django) - BEFORE API proxy (locally served)
+    # -----------------
+    location /static/ {
+        alias /staticfiles/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location /media/ {
+        alias /media/;
+        expires 7d;
+        add_header Cache-Control "public";
+    }
+
+    # -----------------
+    # Proxy to frontend
+    # -----------------
+    location / {
+        proxy_pass http://frontend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # -----------------
+    # Proxy to Backend
+    # -----------------
+    location /psycho/api/ {
+        # Check for custom header secret match to prevent backend from being accessible anywhere
+        if ($is_valid_caller = 0) {
+            return 403;
+        }
+        proxy_pass http://backend/psycho/api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # -----------------
+    # Django admin interface
+    # -----------------
+    location /admin/ {
+        proxy_pass http://backend/admin/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+}

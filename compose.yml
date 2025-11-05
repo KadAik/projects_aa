@@ -97,6 +97,8 @@ services:
     image: kadolphe/psycho-front-tests:latest
     container_name: psycho-front
     restart: always
+    env_file:
+        - .env.front
     depends_on:
       back-1:
         condition: service_healthy
@@ -115,9 +117,12 @@ services:
   nginx:
     image: nginx:1.29
     container_name: psycho-nginx
+    env_file:
+        - .env.front
     restart: always
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/templates/default.conf.template:/etc/nginx/templates/default.conf.template:ro
       - static:/staticfiles:ro
       - media:/media:ro
     depends_on:
