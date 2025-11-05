@@ -142,9 +142,6 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 3,
 }
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
-
 # Email settings
 DEFAULT_FROM_EMAIL = config(
     "DEFAULT_FROM_EMAIL", default="noreply@psycho-tests.emaa.mil.bj"
