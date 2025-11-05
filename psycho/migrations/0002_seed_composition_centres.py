@@ -18,7 +18,7 @@ def populate_composition_centres(apps, schema_editor):
         {"name": "Porto-Novo", "location": "Lycée Béhanzin"},
         {"name": "Lokossa", "location": "CEG 1 Lokossa"},
         {"name": "Parakou", "location": "Lycée Mathieu Bouké"},
-        {"name": "Abomey", "location": "Lycée Mafory Bangoura"},
+        {"name": "Abomey", "location": "Lycée Houégbadja"},
         {"name": "Natitingou", "location": "CEG 1 Natitingou"},
     ]
 
