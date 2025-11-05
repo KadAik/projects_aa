@@ -107,10 +107,21 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 # The absolute path to the directory where collectstatic will collect static files for deployment.
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_ROOT_ = BASE_DIR / "staticfiles"
+STATIC_ROOT = config("STATIC_ROOT", default=STATIC_ROOT_)
 
 # The URL to use when referring to static files (where they will be served from)
-STATIC_URL = "/static/"
+STATIC_URL_ = "/static/"
+STATIC_URL = config("STATIC_URL", default=STATIC_URL_)
+
+# Media files (User uploaded files)
+# The absolute path to the directory where media files are stored.
+MEDIA_ROOT_ = BASE_DIR / "media"
+MEDIA_ROOT = config("MEDIA_ROOT", default=MEDIA_ROOT_)
+
+# The URL to use when referring to media files (where they will be served from)
+MEDIA_URL_ = "/media/"
+MEDIA_URL = config("MEDIA_URL", default=MEDIA_URL_)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

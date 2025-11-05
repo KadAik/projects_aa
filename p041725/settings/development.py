@@ -1,5 +1,6 @@
 import os
 from .base import *
+from decouple import Csv
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -10,8 +11,9 @@ SECRET_KEY = os.getenv(
     default="django-insecure-h0z$5-+(=x@&s-#xo!2qyi1*$fl0tcq+6-@+v4f+7d1q+$+n&5",
 )
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"]
-CORS_ORIGIN_ALLOW_ALL = True
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="*", cast=Csv())
+CORS_ALLOWED_ORIGINS = config("CORS_ALLOWED_ORIGINS", default="*", cast=Csv())
+CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", cast=Csv(), default="*")
 
 INSTALLED_APPS += ["debug_toolbar"]
 
