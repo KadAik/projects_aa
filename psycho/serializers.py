@@ -32,15 +32,12 @@ class SanitizeStringFieldMixin:
         cleaned_attrs = {}
         for field, value in attrs.items():
             if isinstance(value, str):
-                print(f"Sanitizing field {field}: {value}")
                 cleaned_attrs[field] = bleach.clean(
                     value,
                     tags=self.allowed_tags,
                     attributes=self.allowed_attrs,
                 )
             else:
-                print(f"Skipping field {field} (type={type(value)})")
-
                 cleaned_attrs[field] = value
         return super().validate(cleaned_attrs)
 
@@ -129,7 +126,6 @@ class AdminProfileSerializer(SanitizeStringFieldMixin, serializers.ModelSerializ
         """
         Update the user while updating an admin profile.
         """
-        print("Updating AdminProfile with data:", validated_data)
         with transaction.atomic():
             user = instance.user
             user_data = validated_data.pop("user", {})
@@ -367,7 +363,6 @@ class ApplicantProfileSerializer(SanitizeStringFieldMixin, serializers.ModelSeri
         create_user_account = validated_data.pop("create_user_account", None)
         username = validated_data.pop("username", None)
         password = validated_data.pop("password", None)
-        print("receive to update : ", validated_data)
         updated = super().update(instance, validated_data)
 
         if create_user_account:
@@ -425,7 +420,6 @@ class ApplicationSerializer(SanitizeStringFieldMixin, serializers.ModelSerialize
         """
         Create a new application.
         """
-        print("Creating application with data:", validated_data)
         applicant_profile_data = validated_data.pop("applicant", None)
         composition_centre_instance = validated_data.pop("composition_centre", None)
         with transaction.atomic():
