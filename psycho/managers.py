@@ -5,6 +5,8 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from psycho.querysets import ApplicationQuerySet
 from psycho.utils.shared.utils import ensure_group_permissions
+import string
+import unicodedata
 
 
 class ApplicationManager(models.Manager):
@@ -14,12 +16,36 @@ class ApplicationManager(models.Manager):
         return ApplicationQuerySet(self.model, using=self._db)
 
     def create_with_tracking_id(self, applicant, **kwargs):
-        """Create application with auto-generated tracking ID."""
+        """Create application with auto-generated tracking ID.
+
+        Converts accented characters to their ASCII equivalents.
+        Example: DÉSIRÉ -> DESIRE -> DE, O'CONNOR -> OC, N'DEKO -> ND
+        """
         application = self.model(applicant=applicant, **kwargs)
 
         max_attempts = 10
         for _ in range(max_attempts):
-            tracking_id = f"{applicant.last_name[:2].upper()}-{applicant.date_of_birth.strftime('%d%m%y')}-{random.randint(100, 999)}"
+            # Convert accented characters to ASCII equivalents
+            last_name_normalized = unicodedata.normalize("NFKD", applicant.last_name)
+            last_name_ascii = "".join(
+                char
+                for char in last_name_normalized
+                if not unicodedata.combining(char)  # Remove combining diacritics
+            )
+
+            # Now filter to only ASCII letters
+            last_name_clean = "".join(
+                char for char in last_name_ascii if char in string.ascii_letters
+            ).upper()
+
+            if len(last_name_clean) >= 2:
+                prefix = last_name_clean[:2]
+            elif len(last_name_clean) == 1:
+                prefix = last_name_clean[0] + "X"
+            else:
+                prefix = "XX"
+
+            tracking_id = f"{prefix}-{applicant.date_of_birth.strftime('%d%m%y')}-{random.randint(100, 999)}"
             application.tracking_id = tracking_id
             try:
                 application.save()
