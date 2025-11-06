@@ -2,6 +2,7 @@
 Django shared settings for p041725 project.
 """
 
+import os
 from pathlib import Path
 from decouple import config
 from corsheaders.defaults import default_headers
@@ -191,3 +192,21 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = (
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "x-caller-secret",
 ]
+
+LOG_DIR = config("LOG_DIR", default="/var/log/django/")
+
+# Safe LOG_DIR directory creation
+try:
+    os.makedirs(LOG_DIR, exist_ok=True)
+    print(f"Log directory created/verified: {LOG_DIR}")
+except PermissionError:
+    print(f"Permission denied creating log directory: {LOG_DIR}")
+    # Fallback to project directory
+    LOG_DIR = BASE_DIR / "logs"
+    os.makedirs(LOG_DIR, exist_ok=True)
+    print(f"Using fallback log directory: {LOG_DIR}")
+except Exception as e:
+    print(f"Error creating log directory: {e}")
+    # Ultimate fallback
+    LOG_DIR = "/tmp"
+    print(f"Using temp directory for logs: {LOG_DIR}")
