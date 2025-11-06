@@ -1,3 +1,4 @@
+from datetime import date
 from django.db import transaction
 from rest_framework import serializers
 from django_q.tasks import async_task
@@ -263,6 +264,16 @@ class ApplicantProfileSerializer(SanitizeStringFieldMixin, serializers.ModelSeri
     )
 
     highest_degree = DegreeSerializer()
+
+    def validate_date_of_birth(self, value):
+        min_date = date(2002, 12, 31)
+        max_date = date(2008, 12, 31)
+
+        if not (min_date <= value <= max_date):
+            raise serializers.ValidationError(
+                f"Date of birth must be between {min_date.strftime('%d/%m/%Y')} and {max_date.strftime('%d/%m/%Y')}."
+            )
+        return value
 
     class Meta:
         model = ApplicantProfile
