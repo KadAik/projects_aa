@@ -13,6 +13,11 @@ urlpatterns = [
     ),
 ]
 
+# Log client errors
+urlpatterns += [
+    path("api/logs/client-errors", views.log_client_error, name="log_client_error"),
+]
+
 # User URLs
 urlpatterns += [
     path(

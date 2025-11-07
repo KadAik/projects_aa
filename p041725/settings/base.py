@@ -210,3 +210,75 @@ except Exception as e:
     # Ultimate fallback
     LOG_DIR = "/tmp"
     print(f"Using temp directory for logs: {LOG_DIR}")
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
+    "filters": {
+        "require_debug_false": {
+            "()": "django.utils.log.RequireDebugFalse",
+        },
+        "require_debug_true": {
+            "()": "django.utils.log.RequireDebugTrue",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": "INFO",
+            "filters": ["require_debug_true"],
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        },
+        "file": {
+            "level": "ERROR",
+            "class": "logging.FileHandler",
+            "filename": os.path.join(
+                LOG_DIR, "errors.log"
+            ),  # log dir is created in base
+            "formatter": "verbose",
+        },
+        "mail_admins": {
+            "level": "ERROR",
+            "filters": ["require_debug_false"],
+            "class": "django.utils.log.AdminEmailHandler",
+            "include_html": True,
+        },
+        "file_client_errors": {
+            "level": "ERROR",
+            "class": "logging.FileHandler",
+            "filename": os.path.join(LOG_DIR, "client_errors.log"),
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console", "file", "mail_admins"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "django.request": {
+            "handlers": ["file", "mail_admins"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "psycho-backend": {
+            "handlers": ["console", "file", "mail_admins"],
+            "level": "ERROR",
+        },
+        "client_errors": {
+            "handlers": ["file_client_errors", "mail_admins"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+    },
+}
