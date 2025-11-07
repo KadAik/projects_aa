@@ -184,10 +184,8 @@ Q_CLUSTER = {
     },
 }
 
-# File handler settings
-FILE_UPLOAD_MAX_MEMORY_SIZE = (
-    0.5 * 1024 * 1024
-)  # 0.5 MB (typically forces files larger than this to be streamed to disk)
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5MB
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "x-caller-secret",
