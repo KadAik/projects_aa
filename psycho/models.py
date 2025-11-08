@@ -210,38 +210,41 @@ class ApplicantProfile(models.Model, NormalizeFieldsMixin):
     )
 
     first_name = models.CharField(
-        "Applicant first name",
+        "Prénoms",
         max_length=100,
         help_text="Applicant's first name",
         error_messages={"blank": "First name cannot be empty."},
     )
 
     last_name = models.CharField(
-        "Applicant last name",
+        "Nom",
         max_length=100,
         help_text="Applicant's last name",
         error_messages={"blank": "Last name cannot be empty."},
     )
 
     date_of_birth = models.DateField(
+        "Date de naissance",
         help_text="Applicant's date of birth",
         error_messages={"blank": "Date of birth is required."},
     )
 
     place_of_birth = models.CharField(
+        "Lieu de naissance",
         max_length=100,
         help_text="Applicant's place of birth",
         error_messages={"blank": "Place of birth is required."},
     )
 
     gender = models.CharField(
+        "Genre",
         max_length=1,
         choices=[("M", "Male"), ("F", "Female")],
         help_text="Applicant gender",
     )
 
     wears_glasses = models.BooleanField(
-        "Wears glasses",
+        "Port de lunnettes",
         help_text="Does the applicant use spectacles?",
         error_messages={"invalid": "Please specify if the applicant wears glasses."},
     )
@@ -260,7 +263,7 @@ class ApplicantProfile(models.Model, NormalizeFieldsMixin):
     #               Contact
     # -------------------------------------
     email = models.EmailField(
-        "Applicant email",
+        "Email",
         max_length=100,
         help_text="Applicant email address",
         unique=True,
@@ -268,7 +271,7 @@ class ApplicantProfile(models.Model, NormalizeFieldsMixin):
     )
 
     phone = PhoneNumberField(
-        "Applicant phone number",
+        "Téléphone",
         region="BJ",
         help_text="Applicant phone number",
         unique=True,
@@ -314,14 +317,14 @@ class ApplicantProfile(models.Model, NormalizeFieldsMixin):
     )
 
     academic_level = models.CharField(
-        "Applicant academic level",
+        "Niveau académique",
         max_length=6,
         choices=AcademicLevelChoices.choices,
         help_text="Current academic level of the applicant",
     )
 
     baccalaureate_series = models.CharField(
-        "Baccalaureate series",
+        "Bac",
         max_length=1,
         choices=BaccalaureateSeriesChoices.choices,
         help_text="Series of the baccalaureate obtained",

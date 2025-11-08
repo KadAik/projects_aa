@@ -29,9 +29,17 @@ admin.site.index_title = "Tableau de bord"
 @admin.register(ApplicantProfile)
 class ApplicantAdmin(admin.ModelAdmin):
     readonly_fields = ["user", "date_registered", "date_updated"]
-    search_fields = ["email", "phone"]
-
-    list_display = ["first_name", "last_name", "date_registered", "date_updated"]
+    list_display = [
+        "first_name",
+        "last_name",
+        "gender",
+        "date_of_birth",
+        "baccalaureate_series",
+        "email",
+        "date_registered",
+    ]
+    search_fields = ["first_name", "last_name", "email", "phone"]
+    list_filter = ["gender"]
 
 
 @admin.register(AdminProfile)
@@ -43,7 +51,9 @@ class Admin(admin.ModelAdmin):
 class ApplicationAdmin(admin.ModelAdmin):
     list_display = [
         "applicant",
+        "gender",
         "tracking_id",
+        "academic_level_fr",
         "composition_centre",
         "status",
         "date_submitted_fr",
@@ -65,6 +75,15 @@ class ApplicationAdmin(admin.ModelAdmin):
     ]
     ordering = ["-date_submitted"]
     actions = ["export_as_csv", "accept_applications"]
+
+    @admin.display(description="Niveau académique")
+    def academic_level_fr(self, obj):
+        return obj.applicant.academic_level
+
+    @admin.display(description="Genre")
+    def gender(self, obj):
+
+        return obj.applicant.gender
 
     @admin.display(description="Fichiers")
     def uploaded_files_preview(self, obj):
@@ -156,6 +175,12 @@ class ApplicationAdmin(admin.ModelAdmin):
         )
 
     accept_applications.short_description = "✅ Accepter les candidatures sélectionnées"
+
+    def changelist_view(self, request, extra_context=None):
+        total_apps = self.model.objects.count()
+        extra_context = extra_context or {}
+        extra_context["total_applications"] = total_apps
+        return super().changelist_view(request, extra_context=extra_context)
 
 
 @admin.register(User)

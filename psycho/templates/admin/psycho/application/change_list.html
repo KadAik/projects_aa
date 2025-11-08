@@ -1,0 +1,8 @@
+{% extends "admin/change_list.html" %}
+
+{% block content %}
+<div style="margin-bottom: 1em; font-weight: bold;">
+    📊 Total des candidatures : {{ total_applications }}
+</div>
+{{ block.super }}
+{% endblock %}
