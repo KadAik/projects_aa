@@ -27,19 +27,6 @@ services:
       retries: 5
       start_period: 0s
 
-  # Service to back-up the database (runs manually)
-  db-backup:
-    image: postgres:18
-    volumes:
-      - ./db-backups:/backups
-    env_file:
-      - .env
-    entrypoint: >
-      bash -c "pg_dump -h db -p 5432 -U ${POSTGRES_USER:-postgres} -Fc
-      -d ${POSTGRES_DB:-psycho_db}
-      -f /backups/backup-$(date +%Y%m%d_%H%M%S).dump"
-    networks:
-      - psycho-db-network
   redis:
     image: redis:8.2
     container_name: psycho-redis
@@ -144,6 +131,33 @@ services:
       - psycho-front-network
     ports:
       - "81:80"
+
+# --------------------------------------------
+# Backup services : runs manually
+# Usage : docker compose run --rm db-backup
+# --------------------------------------------
+
+  db-backup:
+    image: postgres:18
+    volumes:
+      - ./db-backups:/backups
+    env_file:
+      - .env
+    entrypoint: >
+      bash -c "pg_dump -h db -p 5432 -U ${POSTGRES_USER:-postgres} -Fc
+      -d ${POSTGRES_DB:-psycho_db}
+      -f /backups/backup-$(date +%Y%m%d_%H%M%S).dump"
+    networks:
+      - psycho-db-network
+  media-backup:
+    image: ubuntu:latest
+    volumes:
+      - media:/mediafiles:ro
+      - ./media-backups:/backups
+    entrypoint: >
+      bash -c "tar czf /backups/media-$(date +%Y%m%d_%H%M%S).tar.gz /mediafiles"
+
+# --------------------------------------------
 
 volumes:
   db-data:
