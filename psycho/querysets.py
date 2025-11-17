@@ -44,6 +44,7 @@ class ApplicationQuerySet(models.QuerySet):
                 f"Bonjour {applicant.first_name},\n\n"
                 f"Nous avons le plaisir de vous informer que votre candidature "
                 f"(ID: {app.tracking_id}) a été acceptée.\n\n"
+                "Présélection le SAMEDI 29 NOVEMBRE 2025. \n"
                 f"Centre de composition: {app.composition_centre.name if app.composition_centre else 'Non assigné'}.\n\n"
                 "Cordialement,\nL'équipe Direction des ressources humaines Armée de l'air."
             )
