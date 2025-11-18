@@ -8,6 +8,8 @@ from django.db import models
 import logging
 from django.db import transaction
 
+from psycho.utils.emails_utils import send_throttled_mail
+
 logger = logging.getLogger(__name__)
 
 
@@ -50,7 +52,7 @@ class ApplicationQuerySet(models.QuerySet):
             )
             try:
                 async_task(
-                    send_mail,
+                    send_throttled_mail,
                     subject,
                     message,
                     settings.DEFAULT_FROM_EMAIL,

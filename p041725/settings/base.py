@@ -170,8 +170,8 @@ Q_CLUSTER = {
     "workers": 4,
     "recycle": 500,
     "timeout": 120,
-    "retry": 150,
-    "max_attempts": 10,
+    "retry": 3660,  # Changed: retry after ~1 hour instead of 2 minutes
+    "max_attempts": 24,  # Changed: retry for up to 24 hours
     "compress": False,
     "save_limit": 250,
     "queue_limit": 10,
@@ -183,6 +183,10 @@ Q_CLUSTER = {
         "db": config("REDIS_DB", default=0, cast=int),
     },
 }
+
+REDIS_HOST = config("REDIS_HOST", default="127.0.0.1")
+REDIS_PORT = config("REDIS_PORT", default=6379, cast=int)
+REDIS_DB = 1
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5MB
