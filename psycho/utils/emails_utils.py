@@ -7,13 +7,13 @@ from datetime import datetime, timedelta
 import logging
 from premailer import transform
 
-from psycho.models import Application
-
 logger = logging.getLogger(__name__)
 
 
 def send_application_confirmation_email(application_id):
     """Send confirmation email to applicant upon application submission."""
+    from psycho.models import Application
+
     application = Application.objects.get(application_id=application_id)
     applicant = application.applicant
     context = {

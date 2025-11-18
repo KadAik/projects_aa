@@ -57,7 +57,6 @@ class ApplicationQuerySet(models.QuerySet):
                     message,
                     settings.DEFAULT_FROM_EMAIL,
                     [applicant.email],
-                    fail_silently=False,
                 )
                 logger.info(
                     f"Email queued for {applicant.email} (App: {app.tracking_id})"
