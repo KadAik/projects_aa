@@ -115,8 +115,10 @@ class ApplicationAdmin(admin.ModelAdmin):
         meta = self.model._meta
         field_names = [
             "tracking_id",
-            "applicant__first_name",
             "applicant__last_name",
+            "applicant__first_name",
+            "applicant__gender",
+            "applicant__academic_level",
             "applicant__email",
             "applicant__phone",
             "composition_centre__name",
@@ -135,8 +137,10 @@ class ApplicationAdmin(admin.ModelAdmin):
         writer.writerow(
             [
                 "ID de suivi",
-                "Prénom",
                 "Nom",
+                "Prénom",
+                "Genre",
+                "Niveau académique",
                 "Email",
                 "Téléphone",
                 "Centre de composition",
@@ -150,8 +154,10 @@ class ApplicationAdmin(admin.ModelAdmin):
             writer.writerow(
                 [
                     obj.tracking_id,
-                    obj.applicant.first_name,
                     obj.applicant.last_name,
+                    obj.applicant.first_name,
+                    obj.applicant.gender,
+                    obj.applicant.academic_level,
                     obj.applicant.email,
                     f"\t{obj.applicant.phone}",  # To force phone number as text, not number (avoid scientific notation),
                     obj.composition_centre.name if obj.composition_centre else "",
