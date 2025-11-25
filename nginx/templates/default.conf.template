@@ -10,6 +10,9 @@ server {
     server_name psycho-tests.emaa.mil.bj localhost front back;
 
 
+    # Uploads
+    client_max_body_size 100M;
+
     # -----------------
     # Serve static files and media (Django) - BEFORE API proxy (locally served)
     # -----------------
