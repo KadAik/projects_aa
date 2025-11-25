@@ -284,3 +284,9 @@ LOGGING = {
         },
     },
 }
+
+
+WEBHOOK_UPDATE_SERVICE_ACCESS_TOKEN = config(
+    "WEBHOOK_UPDATE_SERVICE_ACCESS_TOKEN",
+    default="askwuv7j_eg2*b+%pzxyhqva!e99iae9&k+ylsesd$-l2_zlxz",
+)

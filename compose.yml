@@ -40,6 +40,7 @@ services:
   back-1:
     image: kadolphe/psycho-back-tests:latest
     container_name: psycho-back-1
+    user: root
     restart: always
     depends_on:
       db:
@@ -60,10 +61,13 @@ services:
     volumes:
       - static:/staticfiles
       - media:/mediafiles
-
+      - /var/run/docker.sock:/var/run/docker.sock # this is necessary to launch docker cmds inside the container to run on the host (eg. update_services.sh)
+      - /usr/bin/docker:/usr/bin/docker         # Docker CLI
+      - /usr/lib/docker/cli-plugins:/usr/lib/docker/cli-plugins  # compose plugin
   back-2:
       image: kadolphe/psycho-back-tests:latest
       container_name: psycho-back-2
+      user: root
       restart: always
       depends_on:
         db:
@@ -86,7 +90,9 @@ services:
       volumes:
         - static:/staticfiles
         - media:/mediafiles
-
+        - /var/run/docker.sock:/var/run/docker.sock # this is necessary to launch docker cmds inside the container to run on the host (eg. update_services.sh)
+        - /usr/bin/docker:/usr/bin/docker         # Docker CLI
+        - /usr/lib/docker/cli-plugins:/usr/lib/docker/cli-plugins  # compose plugin
   front:
     image: kadolphe/psycho-front-tests:latest
     container_name: psycho-front
