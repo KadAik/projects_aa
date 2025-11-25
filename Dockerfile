@@ -19,10 +19,6 @@ EXPOSE 8000
 # Make entrypoint script executable
 RUN chmod +x /usr/src/app/docker-entrypoint.sh
 
-# Make update services (webhook listener) script executable
-RUN chmod +x /usr/src/app/update_services.sh
-
-
 ENTRYPOINT ["/usr/src/app/docker-entrypoint.sh"]
 
 # Default command to run the application (will be used or overridden by entrypoint script)

@@ -11,6 +11,35 @@
 set -e  # Exit on any error
 
 # -----------------------------
+# ------ Configuration  -------
+# -----------------------------
+
+# Absolute path project directory
+PROJECT_DIR="${PROJECT_DIR:-/home/mdnadmin/psycho/tests/app}"
+
+# Path to the host .env file (NOT inside any container!)
+ENV_FILE="$PROJECT_DIR/.env"
+
+# Path to docker-compose.yml
+COMPOSE_FILE="$PROJECT_DIR/compose.yml"
+
+# Ensure files exist
+if [[ ! -f "$COMPOSE_FILE" ]]; then
+    echo "ERROR: docker-compose.yml not found at: $COMPOSE_FILE"
+    exit 1
+fi
+
+if [[ ! -f "$ENV_FILE" ]]; then
+    echo "ERROR: .env file not found at: $ENV_FILE"
+    exit 1
+fi
+
+# Base docker compose command
+DC="docker compose --env-file $ENV_FILE -f $COMPOSE_FILE"
+
+# --- END CONFIGURATION --------------------------------------------
+
+# -----------------------------
 # Argument parsing
 # -----------------------------
 exclude_patterns=()
@@ -88,10 +117,10 @@ is_excluded() {
 pull_images() {
     if [ "${#services[@]}" -ne 0 ]; then
         echo "Pulling images for: ${services[*]}"
-        docker compose pull "${services[@]}"
+        $DC pull "${services[@]}"
     else
         echo "Pulling ALL images (no services specified)..."
-        docker compose pull
+        $DC pull
     fi
 }
 
@@ -105,7 +134,7 @@ run_containers() {
     local final_services=()
 
     if [ "${#services[@]}" -ne 0 ]; then
-        # Filter only provided services
+        # Filter provided services
         for s in "${services[@]}"; do
             if is_excluded "$s"; then
                 echo "Skipping excluded service: $s"
@@ -114,14 +143,14 @@ run_containers() {
             fi
         done
     else
-        # Load all services from compose file
+        # Load all services from compose
         while IFS= read -r svc; do
             if is_excluded "$svc"; then
                 echo "Skipping excluded service: $svc"
             else
                 final_services+=("$svc")
             fi
-        done < <(docker compose config --services)
+        done < <($DC config --services)
     fi
 
     if [ "${#final_services[@]}" -eq 0 ]; then
@@ -136,9 +165,21 @@ run_containers() {
         return 0
     fi
 
-    docker compose down "${final_services[@]}"
-    docker compose up -d "${final_services[@]}"
+    if [ "${#services[@]}" -eq 0 ]; then
+        # No specific services provided → restart everything
+        echo "No specific services provided. Restarting ALL services..."
+        $DC down
+        $DC up -d
+    else
+        # Restart only the selected ones
+        echo "Restarting only: ${final_services[*]}"
+        for svc in "${final_services[@]}"; do
+            $DC stop "$svc" || true
+            $DC up -d --no-deps "$svc"
+        done
+    fi
 }
+
 
 
 # -----------------------------
