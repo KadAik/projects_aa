@@ -141,6 +141,7 @@ services:
 # --------------------------------------------
 # Backup services : runs manually
 # Usage : docker compose run --rm db-backup
+#        docker compose run --rm media-backup
 # --------------------------------------------
 
   db-backup:
