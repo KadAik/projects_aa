@@ -29,3 +29,8 @@ __pycache__/
 # ------------ #
 staticfiles/
 media/
+
+# DB and medias backups #
+# ------------ #
+db-backups*
+media-backups*
