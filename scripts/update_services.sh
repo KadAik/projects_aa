@@ -15,13 +15,13 @@ set -e  # Exit on any error
 # -----------------------------
 
 # Absolute path project directory
-CONFIG_DIR="${BACK_CONFIG_DIR:-/etc/back}"
+PROJECT_DIR="${PROJECT_DIR:-/host}"
 
 # Path to the host .env file (NOT inside any container!)
-ENV_FILE="$CONFIG_DIR/.env"
+ENV_FILE="$PROJECT_DIR/.env"
 
 # Path to docker-compose.yml
-COMPOSE_FILE="$CONFIG_DIR/compose.yml"
+COMPOSE_FILE="$PROJECT_DIR/compose.yml"
 
 # Ensure files exist
 if [[ ! -f "$COMPOSE_FILE" ]]; then
@@ -34,8 +34,10 @@ if [[ ! -f "$ENV_FILE" ]]; then
     exit 1
 fi
 
+cd "$PROJECT_DIR"
+
 # Base docker compose command
-DC="docker compose --env-file $ENV_FILE -f $COMPOSE_FILE"
+DC="docker compose --env-file $ENV_FILE -f $COMPOSE_FILE -p app"
 
 # --- END CONFIGURATION --------------------------------------------
 
