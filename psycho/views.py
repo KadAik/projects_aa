@@ -1,3 +1,4 @@
+from pathlib import Path
 from django.http import JsonResponse
 from django.utils import timezone
 import os
@@ -92,7 +93,7 @@ def launch_services_update(request):
     #    return JsonResponse({"error": "unauthorized"}, status=403)
 
     # Script path
-    script_path = settings.BASE_DIR / "update_services.sh"
+    script_path = Path("/scripts/update_services.sh")
 
     if not script_path.exists():
         logger_services_update.error("Webhook: update_services.sh NOT FOUND")
