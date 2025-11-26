@@ -15,13 +15,13 @@ set -e  # Exit on any error
 # -----------------------------
 
 # Absolute path project directory
-PROJECT_DIR="${PROJECT_DIR:-/home/mdnadmin/psycho/tests/app}"
+CONFIG_DIR="${BACK_CONFIG_DIR:-/etc/back}"
 
 # Path to the host .env file (NOT inside any container!)
-ENV_FILE="$PROJECT_DIR/.env"
+ENV_FILE="$CONFIG_DIR/.env"
 
 # Path to docker-compose.yml
-COMPOSE_FILE="$PROJECT_DIR/compose.yml"
+COMPOSE_FILE="$CONFIG_DIR/compose.yml"
 
 # Ensure files exist
 if [[ ! -f "$COMPOSE_FILE" ]]; then

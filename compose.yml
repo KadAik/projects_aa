@@ -65,6 +65,7 @@ services:
       - /usr/bin/docker:/usr/bin/docker         # Docker CLI
       - /usr/local/lib/docker/cli-plugins:/usr/lib/docker/cli-plugins # compose plugin
       - ./scripts:/usr/src/app/scripts
+      - ./configs:/etc/back
   back-2:
       image: kadolphe/psycho-back-tests:latest
       container_name: psycho-back-2
@@ -95,6 +96,7 @@ services:
         - /usr/bin/docker:/usr/bin/docker         # Docker CLI
         - /usr/local/lib/docker/cli-plugins:/usr/lib/docker/cli-plugins # compose plugin
         - ./scripts:/scripts
+        - ./configs:/etc/back
   front:
     image: kadolphe/psycho-front-tests:latest
     container_name: psycho-front
