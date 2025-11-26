@@ -64,10 +64,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock # this is necessary to launch docker cmds inside the container to run on the host (eg. update_services.sh)
       - /usr/bin/docker:/usr/bin/docker         # Docker CLI
       - /usr/local/lib/docker/cli-plugins:/usr/lib/docker/cli-plugins # compose plugin
-      - type: bind
-        source: ./update_services.sh
-        target: /usr/src/app/update_services.sh
-        read_only: true
+      - ./update_services.sh:/usr/src/app/update_services.sh
   back-2:
       image: kadolphe/psycho-back-tests:latest
       container_name: psycho-back-2
@@ -97,10 +94,7 @@ services:
         - /var/run/docker.sock:/var/run/docker.sock # this is necessary to launch docker cmds inside the container to run on the host (eg. update_services.sh)
         - /usr/bin/docker:/usr/bin/docker         # Docker CLI
         - /usr/local/lib/docker/cli-plugins:/usr/lib/docker/cli-plugins # compose plugin
-        - type: bind
-          source: ./update_services.sh
-          target: /usr/src/app/update_services.sh
-          read_only: true
+        - ./update_services.sh:/usr/src/app/update_services.sh
   front:
     image: kadolphe/psycho-front-tests:latest
     container_name: psycho-front
